@@ -67,7 +67,7 @@ jobs:
                 'init_command': \"SET sql_mode='STRICT_TRANS_TABLES'\",
               }
             }
-          }" >> $GITHUB_WORKSPACE/config/secret.py
+          }" >> $GITHUB_WORKSPACE/secret.py
 
 
       - name: Run Django Migration
