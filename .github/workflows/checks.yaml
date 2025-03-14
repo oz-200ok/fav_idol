@@ -1,0 +1,84 @@
+name: Code Quality Checks
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: mysql:8.0
+        ports:
+          - 3306:3306
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
+          MYSQL_USER: ${{ secrets.MYSQL_USER }}
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Cache Poetry dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.poetry/bin" >> $GITHUB_PATH
+          source $HOME/.poetry/env
+
+      - name: Install Packages & Libraries
+        run: |
+          poetry install --no-root
+
+      - name: Create secret.py
+        run: |
+          echo "SECRET_KEY = '${{ secrets.SECRET_KEY }}'" > $GITHUB_WORKSPACE/config/secret.py
+          echo "DATABASES = {
+            'default': {
+              'ENGINE': 'django.db.backends.mysql',
+              'NAME': '${{ secrets.MYSQL_DATABASE }}',
+              'USER': '${{ secrets.MYSQL_USER }}',
+              'PASSWORD': '${{ secrets.MYSQL_PASSWORD }}',
+              'HOST': '127.0.0.1',
+              'PORT': '3306',
+              'OPTIONS': {
+                'charset': 'utf8mb4',
+                'init_command': \"SET sql_mode='STRICT_TRANS_TABLES'\",
+              }
+            }
+          }" >> $GITHUB_WORKSPACE/config/secret.py
+
+
+      - name: Run Django Migration
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings.test
+        run: |
+          poetry run python manage.py migrate
+
+      - name: Run Tests
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings.test
+        run: |
+          poetry run python manage.py test
