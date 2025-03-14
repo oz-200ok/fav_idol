@@ -12,8 +12,9 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 
-from secret import *
 import pymysql
+
+from secret import *
 
 pymysql.install_as_MySQLdb()
 
@@ -43,6 +44,10 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "Accounts",
+    "Idols",
+    "Schedules",
+    "Preferences",
 ]
 
 MIDDLEWARE = [
