@@ -53,7 +53,7 @@ jobs:
 
       - name: Create secret.py
         run: |
-          echo "SECRET_KEY = '${{ secrets.SECRET_KEY }}'" > $GITHUB_WORKSPACE/config/secret.py
+          echo "SECRET_KEY = '${{ secrets.SECRET_KEY }}'" > $GITHUB_WORKSPACE/secret.py
           echo "DATABASES = {
             'default': {
               'ENGINE': 'django.db.backends.mysql',
