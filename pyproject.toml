@@ -12,7 +12,9 @@ dependencies = [
     "django-restframework (>=0.0.1,<0.0.2)",
     "drf-yasg (>=1.21.10,<2.0.0)",
     "isort (>=6.0.1,<7.0.0)",
-    "black (>=25.1.0,<26.0.0)"
+    "black (>=25.1.0,<26.0.0)",
+    "pymysql (>=1.1.1,<2.0.0)",
+    "cryptography (>=44.0.2,<45.0.0)"
 ]
 
 [tool.poetry]

@@ -67,17 +67,13 @@ jobs:
                 'init_command': \"SET sql_mode='STRICT_TRANS_TABLES'\",
               }
             }
-          }" >> $GITHUB_WORKSPACE/config/secret.py
+          }" >> $GITHUB_WORKSPACE/secret.py
 
 
       - name: Run Django Migration
-        env:
-          DJANGO_SETTINGS_MODULE: config.settings.test
         run: |
           poetry run python manage.py migrate
 
       - name: Run Tests
-        env:
-          DJANGO_SETTINGS_MODULE: config.settings.test
         run: |
           poetry run python manage.py test
