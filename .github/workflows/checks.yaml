@@ -71,13 +71,9 @@ jobs:
 
 
       - name: Run Django Migration
-        env:
-          DJANGO_SETTINGS_MODULE: test
         run: |
           poetry run python manage.py migrate
 
       - name: Run Tests
-        env:
-          DJANGO_SETTINGS_MODULE: test
         run: |
           poetry run python manage.py test
