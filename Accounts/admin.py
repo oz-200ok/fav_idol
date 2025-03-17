@@ -29,3 +29,31 @@ class CustomUserAdmin(UserAdmin):
     )  # 필터링에 사용할 필드 목록
     search_fields = ("email", "username", "name")  # 검색에 사용할 필드 목록
     ordering = ("email",)  # 정렬 기준
+    fieldsets = (
+        (None, {"fields": ("email",)}),
+        ("Personal info", {"fields": ("name", "username", "phone")}),
+        (
+            "Permissions",
+            {
+                "fields": (
+                    "is_active",
+                    "is_staff",
+                    "is_admin",
+                    "is_superuser",
+                    "is_social",
+                    "social_login",
+                )
+            },
+        ),
+        ("Important dates", {"fields": ("created_at", "updated_at")}),
+    )
+    readonly_fields = ("created_at", "updated_at")
+    add_fieldsets = (
+        (
+            None,
+            {
+                "classes": ("wide",),
+                "fields": ("email", "username", "name", "password1", "password2"),
+            },
+        ),
+    )

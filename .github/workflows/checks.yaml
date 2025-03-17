@@ -16,11 +16,8 @@ jobs:
           - 3306:3306
         env:
           MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
-          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
-          MYSQL_USER: ${{ secrets.MYSQL_USER }}
-          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
         options: >-
-          --health-cmd="mysqladmin ping"
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -P 3306"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
@@ -29,10 +26,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Python
+      - name: Set up Python 3.12
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Cache Poetry dependencies
         uses: actions/cache@v3
@@ -57,9 +54,9 @@ jobs:
           echo "DATABASES = {
             'default': {
               'ENGINE': 'django.db.backends.mysql',
-              'NAME': '${{ secrets.MYSQL_DATABASE }}',
-              'USER': '${{ secrets.MYSQL_USER }}',
-              'PASSWORD': '${{ secrets.MYSQL_PASSWORD }}',
+              'NAME': 'test_fav_idol', 
+              'USER': 'root', 
+              'PASSWORD': '${{ secrets.MYSQL_ROOT_PASSWORD }}', 
               'HOST': '127.0.0.1',
               'PORT': '3306',
               'OPTIONS': {
@@ -69,6 +66,9 @@ jobs:
             }
           }" >> $GITHUB_WORKSPACE/secret.py
 
+      - name: Create Test Database
+        run: |
+          mysql -h 127.0.0.1 -P 3306 -uroot -p${{ secrets.MYSQL_ROOT_PASSWORD }} -e "CREATE DATABASE IF NOT EXISTS test_fav_idol CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
 
       - name: Run Django Migration
         run: |
