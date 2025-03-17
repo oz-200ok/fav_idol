@@ -1,4 +1,5 @@
 from django.db import models
+
 from Accounts.models import User
 from Idols.models import Group
 
