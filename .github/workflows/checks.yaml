@@ -54,7 +54,7 @@ jobs:
           echo "DATABASES = {
             'default': {
               'ENGINE': 'django.db.backends.mysql',
-              'NAME': 'fav_idol',
+              'NAME': 'fav_idol', # 데이터베이스 이름을 fav_idol로 설정 (테스트 데이터베이스가 아님)
               'USER': 'testuser',
               'PASSWORD': 'testpassword',
               'HOST': '127.0.0.1',
@@ -68,12 +68,10 @@ jobs:
 
       - name: Create Test Database and User
         run: |
-          mysql -h 127.0.0.1 -P 3306 -uroot -p${{ secrets.MYSQL_ROOT_PASSWORD }} -e "CREATE DATABASE IF NOT EXISTS fav_idol CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
+          mysql -h 127.0.0.1 -P 3306 -uroot -p${{ secrets.MYSQL_ROOT_PASSWORD }} -e "CREATE DATABASE IF NOT EXISTS test_fav_idol CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;" # 테스트 데이터베이스 생성
           mysql -h 127.0.0.1 -P 3306 -uroot -p${{ secrets.MYSQL_ROOT_PASSWORD }} -e "CREATE USER IF NOT EXISTS 'testuser'@'%' IDENTIFIED BY 'testpassword';"
-          mysql -h 127.0.0.1 -P 3306 -uroot -p${{ secrets.MYSQL_ROOT_PASSWORD }} -e "GRANT ALL PRIVILEGES ON fav_idol.* TO 'testuser'@'%';"
+          mysql -h 127.0.0.1 -P 3306 -uroot -p${{ secrets.MYSQL_ROOT_PASSWORD }} -e "GRANT ALL PRIVILEGES ON test_fav_idol.* TO 'testuser'@'%';" # test_fav_idol 데이터베이스에 대한 권한 부여
           mysql -h 127.0.0.1 -P 3306 -uroot -p${{ secrets.MYSQL_ROOT_PASSWORD }} -e "FLUSH PRIVILEGES;"
-          mysql -h 127.0.0.1 -P 3306 -uroot -p${{ secrets.MYSQL_ROOT_PASSWORD }} -e "GRANT CREATE, ALTER, DROP ON fav_idol.* TO 'testuser'@'%';"
-          mysql -h 127.0.0.1 -P 3306 -uroot -p${{ secrets.MYSQL_ROOT_PASSWORD }} -e "FLUSH PRIVILEGES;" 
 
       - name: Run Django Migration
         run: |
