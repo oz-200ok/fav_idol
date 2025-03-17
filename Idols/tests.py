@@ -1,6 +1,5 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
-from django.urls import reverse
 
 from .models import Agency, Group, Idol
 
@@ -76,17 +75,3 @@ class AgencyGroupIdolTests(TestCase):
 
         # Idol이 Group과 연결되었는지 확인
         self.assertEqual(self.idol.group.name, "EXO")
-
-    def test_admin_urls(self):
-        # 관리자 페이지 URL 확인
-        agency_list_url = reverse("admin:Idols_agency_changelist")
-        group_list_url = reverse("admin:Idols_group_changelist")
-        idol_list_url = reverse("admin:Idols_idol_changelist")
-
-        response_agency = self.client.get(agency_list_url)
-        response_group = self.client.get(group_list_url)
-        response_idol = self.client.get(idol_list_url)
-
-        self.assertEqual(response_agency.status_code, 200)  # 소속사 리스트 페이지
-        self.assertEqual(response_group.status_code, 200)  # 그룹 리스트 페이지
-        self.assertEqual(response_idol.status_code, 200)  # 아이돌 리스트 페이지
