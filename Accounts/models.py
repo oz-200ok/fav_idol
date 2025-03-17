@@ -3,6 +3,8 @@ from django.contrib.auth.models import (
     BaseUserManager,
     PermissionsMixin,
 )
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from django.db import models
 
 
@@ -15,6 +17,11 @@ class UserManager(BaseUserManager):
             raise ValueError("닉네임은 필수입니다")
         if not name:
             raise ValueError("이름은 필수입니다")
+
+        try:
+            validate_email(email)
+        except ValidationError:
+            raise ValueError("유효하지 않은 이메일 형식입니다.")
 
         user = self.model(
             email=self.normalize_email(email),
