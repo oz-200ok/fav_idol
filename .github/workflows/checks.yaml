@@ -29,7 +29,7 @@ jobs:
       - name: Set up Python 3.12
         uses: actions/setup-python@v4
         with:
-          python-version: '3.12' # Python 3.12를 사용하도록 명시적으로 설정
+          python-version: '3.12'
 
       - name: Cache Poetry dependencies
         uses: actions/cache@v3
@@ -54,7 +54,7 @@ jobs:
           echo "DATABASES = {
             'default': {
               'ENGINE': 'django.db.backends.mysql',
-              'NAME': 'fav_idol', # 데이터베이스 이름을 fav_idol로 변경
+              'NAME': 'fav_idol',
               'USER': 'testuser',
               'PASSWORD': 'testpassword',
               'HOST': '127.0.0.1',
@@ -68,11 +68,12 @@ jobs:
 
       - name: Create Test Database and User
         run: |
-          mysql -h 127.0.0.1 -P 3306 -uroot -p${{ secrets.MYSQL_ROOT_PASSWORD }} -e "CREATE DATABASE IF NOT EXISTS fav_idol CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;" # 데이터베이스 이름을 fav_idol로 변경
+          mysql -h 127.0.0.1 -P 3306 -uroot -p${{ secrets.MYSQL_ROOT_PASSWORD }} -e "CREATE DATABASE IF NOT EXISTS fav_idol CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
           mysql -h 127.0.0.1 -P 3306 -uroot -p${{ secrets.MYSQL_ROOT_PASSWORD }} -e "CREATE USER IF NOT EXISTS 'testuser'@'%' IDENTIFIED BY 'testpassword';"
-          mysql -h 127.0.0.1 -P 3306 -uroot -p${{ secrets.MYSQL_ROOT_PASSWORD }} -e "GRANT ALL PRIVILEGES ON fav_idol.* TO 'testuser'@'%';" # 데이터베이스 이름을 fav_idol로 변경
+          mysql -h 127.0.0.1 -P 3306 -uroot -p${{ secrets.MYSQL_ROOT_PASSWORD }} -e "GRANT ALL PRIVILEGES ON fav_idol.* TO 'testuser'@'%';"
           mysql -h 127.0.0.1 -P 3306 -uroot -p${{ secrets.MYSQL_ROOT_PASSWORD }} -e "FLUSH PRIVILEGES;"
-          mysql -h 127.0.0.1 -P 3306 -uroot -p${{ secrets.MYSQL_ROOT_PASSWORD }} -e "GRANT CREATE ON *.* TO 'testuser'@'%';" # testuser에게 데이터베이스 생성 권한 부여
+          mysql -h 127.0.0.1 -P 3306 -uroot -p${{ secrets.MYSQL_ROOT_PASSWORD }} -e "GRANT CREATE, ALTER, DROP ON fav_idol.* TO 'testuser'@'%';"
+          mysql -h 127.0.0.1 -P 3306 -uroot -p${{ secrets.MYSQL_ROOT_PASSWORD }} -e "FLUSH PRIVILEGES;" 
 
       - name: Run Django Migration
         run: |
