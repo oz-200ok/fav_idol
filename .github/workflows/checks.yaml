@@ -69,6 +69,12 @@ jobs:
             }
           }" >> $GITHUB_WORKSPACE/secret.py
 
+      - name: Create Test Database and User
+        run: |
+          mysql -uroot -p${{ secrets.MYSQL_ROOT_PASSWORD }} -e "CREATE DATABASE IF NOT EXISTS test_fav_idol CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
+          mysql -uroot -p${{ secrets.MYSQL_ROOT_PASSWORD }} -e "CREATE USER IF NOT EXISTS 'testuser'@'%' IDENTIFIED BY 'testpassword';"
+          mysql -uroot -p${{ secrets.MYSQL_ROOT_PASSWORD }} -e "GRANT ALL PRIVILEGES ON test_fav_idol.* TO 'testuser'@'%';"
+          mysql -uroot -p${{ secrets.MYSQL_ROOT_PASSWORD }} -e "FLUSH PRIVILEGES;"
 
       - name: Run Django Migration
         run: |
