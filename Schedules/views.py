@@ -1,8 +1,11 @@
-from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from django.views import View
-from .models import Schedule
+
 from Idols.models import Group, Idol
+
+from .models import Schedule
+
 
 class ScheduleListView(View):
     def get(self, request):
@@ -21,8 +24,9 @@ class ScheduleListView(View):
                 "updated_at": schedule.updated_at,
                 "participating_members": [
                     member.name for member in schedule.participating_members.all()
-                ]
-            } for schedule in schedules
+                ],
+            }
+            for schedule in schedules
         ]
         return JsonResponse(data, safe=False)
 
@@ -43,7 +47,7 @@ class ScheduleDetailView(View):
             "updated_at": schedule.updated_at,
             "participating_members": [
                 member.name for member in schedule.participating_members.all()
-            ]
+            ],
         }
         return JsonResponse(data)
 
@@ -51,6 +55,7 @@ class ScheduleDetailView(View):
         schedule = get_object_or_404(Schedule, pk=pk)
         schedule.delete()
         return JsonResponse({"message": "일정이 삭제되었습니다."})
+
 
 class ScheduleCreateView(View):
     def post(self, request):
@@ -81,7 +86,9 @@ class ScheduleCreateView(View):
                 Idol.objects.filter(id__in=participating_member_ids)
             )
 
-        return JsonResponse({"message": "일정 등록이 완료되었습니다.", "id": schedule.id})
+        return JsonResponse(
+            {"message": "일정 등록이 완료되었습니다.", "id": schedule.id}
+        )
 
 
 class ScheduleUpdateView(View):
@@ -104,6 +111,7 @@ class ScheduleUpdateView(View):
         schedule.save()
         return JsonResponse({"message": "일정 수정이 완료되었습니다."})
 
+
 class GroupScheduleListView(View):
     def get(self, request, group_id):
         # 특정 그룹의 일정 필터링
@@ -118,7 +126,9 @@ class GroupScheduleListView(View):
                 "end_time": schedule.end_time,
                 "created_at": schedule.created_at,
                 "updated_at": schedule.updated_at,
-                "participating_members": [member.name for member in schedule.participating_members.all()]
+                "participating_members": [
+                    member.name for member in schedule.participating_members.all()
+                ],
             }
             for schedule in schedules
         ]
