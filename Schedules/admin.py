@@ -14,10 +14,13 @@ class ScheduleAdmin(admin.ModelAdmin):
         "end_time",
         "location",
         "display_participating_members",  # 참가 멤버를 표시하는 메서드를 추가합니다.
+    )  # 관리자 페이지의 스케줄 목록에 표시할 필드들을 지정합니다.
+    readonly_fields = (
         "created_at",
         "updated_at",
-    )  # 관리자 페이지의 스케줄 목록에 표시할 필드들을 지정합니다.
-    # id, title, user, group, start_time, end_time, location, created_at, updated_at 필드를 표시합니다.
+    )
+    # id, title, user, group, start_time, end_time, location 필드를 표시합니다.
+    # 수정 불가능한 필드인 created_at 과 updated_at은 읽기 전용으로 처리합니다.
 
     list_filter = (
         "user",
