@@ -1,135 +1,97 @@
-from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
-from django.views import View
-
-from Idols.models import Group, Idol
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .models import Schedule
+from .permissions import IsAdminOrReadOnly
+from .serializer import ScheduleSerializer
 
 
-class ScheduleListView(View):
+class ScheduleListView(APIView):
+    """
+    일정 목록 조회
+    """
+
     def get(self, request):
         schedules = Schedule.objects.all()
-        data = [
-            {
-                "id": schedule.id,
-                "user": schedule.user.username,
-                "group": schedule.group.name,
-                "title": schedule.title,
-                "description": schedule.description,
-                "location": schedule.location,
-                "start_time": schedule.start_time,
-                "end_time": schedule.end_time,
-                "created_at": schedule.created_at,
-                "updated_at": schedule.updated_at,
-                "participating_members": [
-                    member.name for member in schedule.participating_members.all()
-                ],
-            }
-            for schedule in schedules
-        ]
-        return JsonResponse(data, safe=False)
+        serializer = ScheduleSerializer(schedules, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class ScheduleDetailView(View):
+class ScheduleDetailView(APIView):
+    """
+    특정 일정 상세 조회 및 삭제
+    """
+
+    permission_classes = [IsAdminOrReadOnly]
+
     def get(self, request, pk):
         schedule = get_object_or_404(Schedule, pk=pk)
-        data = {
-            "id": schedule.id,
-            "user": schedule.user.username,
-            "group": schedule.group.name,
-            "title": schedule.title,
-            "description": schedule.description,
-            "location": schedule.location,
-            "start_time": schedule.start_time,
-            "end_time": schedule.end_time,
-            "created_at": schedule.created_at,
-            "updated_at": schedule.updated_at,
-            "participating_members": [
-                member.name for member in schedule.participating_members.all()
-            ],
-        }
-        return JsonResponse(data)
+        serializer = ScheduleSerializer(schedule)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def delete(self, request, pk):
         schedule = get_object_or_404(Schedule, pk=pk)
+        deleted_schedule_data = {
+            "schedule.id": schedule.id,
+            "group_id": schedule.group_id,
+            "title": schedule.title,
+        }
+
         schedule.delete()
-        return JsonResponse({"message": "일정이 삭제되었습니다."})
+        return Response(
+            {
+                "message": "일정이 삭제되었습니다.",
+                "deleted_schedule_data": deleted_schedule_data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
-class ScheduleCreateView(View):
+class ScheduleCreateView(APIView):
+    """
+    새 일정 생성
+    """
+
+    permission_classes = [IsAdminOrReadOnly]
+
     def post(self, request):
-        data = request.POST
-        user_id = data.get("user_id")
-        group_id = data.get("group_id")
-        title = data.get("title")
-        description = data.get("description")
-        location = data.get("location")
-        start_time = data.get("start_time")
-        end_time = data.get("end_time")
-        participating_member_ids = data.getlist("participating_members")
-
-        user = get_object_or_404(User, id=user_id)
-        group = get_object_or_404(Group, id=group_id)
-        schedule = Schedule.objects.create(
-            user=user,
-            group=group,
-            title=title,
-            description=description,
-            location=location,
-            start_time=start_time,
-            end_time=end_time,
-        )
-
-        if participating_member_ids:
-            schedule.participating_members.set(
-                Idol.objects.filter(id__in=participating_member_ids)
-            )
-
-        return JsonResponse(
-            {"message": "일정 등록이 완료되었습니다.", "id": schedule.id}
-        )
+        serializer = ScheduleSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ScheduleUpdateView(View):
+class ScheduleUpdateView(APIView):
+    """
+    일정 업데이트
+    """
+
+    permission_classes = [IsAdminOrReadOnly]
+
     def post(self, request, pk):
         schedule = get_object_or_404(Schedule, pk=pk)
-        data = request.POST
 
-        schedule.title = data.get("title", schedule.title)
-        schedule.description = data.get("description", schedule.description)
-        schedule.location = data.get("location", schedule.location)
-        schedule.start_time = data.get("start_time", schedule.start_time)
-        schedule.end_time = data.get("end_time", schedule.end_time)
+        # 기존 객체 업데이트를 위해 instance 전달
+        serializer = ScheduleSerializer(instance=schedule, data=request.data)
+        if serializer.is_valid():
+            # 데이터 저장
+            serializer.save()
 
-        if "participating_members" in data:
-            participating_member_ids = data.getlist("participating_members")
-            schedule.participating_members.set(
-                Idol.objects.filter(id__in=participating_member_ids)
-            )
-
-        schedule.save()
-        return JsonResponse({"message": "일정 수정이 완료되었습니다."})
+            # 업데이트 된 데이터를 반환
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class GroupScheduleListView(View):
+class GroupScheduleListView(APIView):
+    """
+    특정 그룹의 일정 필터링
+    """
+
     def get(self, request, group_id):
         # 특정 그룹의 일정 필터링
         schedules = Schedule.objects.filter(group_id=group_id)
-        data = [
-            {
-                "id": schedule.id,
-                "title": schedule.title,
-                "description": schedule.description,
-                "location": schedule.location,
-                "start_time": schedule.start_time,
-                "end_time": schedule.end_time,
-                "created_at": schedule.created_at,
-                "updated_at": schedule.updated_at,
-                "participating_members": [
-                    member.name for member in schedule.participating_members.all()
-                ],
-            }
-            for schedule in schedules
-        ]
-        return JsonResponse(data, safe=False)
+        serializer = ScheduleSerializer(schedules, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
