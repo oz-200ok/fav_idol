@@ -6,6 +6,8 @@ from allauth.socialaccount.providers.naver.views import NaverOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Error
 from django.conf import settings
 from django.contrib.auth import authenticate
+from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth.tokens import default_token_generator
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -185,3 +187,96 @@ class LogoutSerializer(serializers.Serializer):
             RefreshToken(self.token).blacklist()
         except Exception as e:
             raise serializers.ValidationError(str(e))
+
+
+class RegisterSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(
+        write_only=True, required=True, validators=[validate_password]
+    )
+
+    class Meta:
+        model = User
+        fields = ("email", "password", "username", "name", "phone")
+        extra_kwargs = {
+            "email": {"required": True},
+            "username": {"required": True},
+            "name": {"required": True},
+            "phone": {"required": True},
+        }
+
+    def validate(self, attrs):
+        # 이메일 중복 검사
+        email = attrs.get("email")
+        if User.objects.filter(email=email).exists():
+            raise serializers.ValidationError({"email": "이미 사용 중인 이메일입니다."})
+
+        # 닉네임 중복 검사
+        username = attrs.get("username")
+        if User.objects.filter(username=username).exists():
+            raise serializers.ValidationError(
+                {"username": "이미 사용 중인 닉네임입니다."}
+            )
+
+        # 전화번호 중복 검사
+        phone = attrs.get("phone")
+        if phone and User.objects.filter(phone=phone).exists():
+            raise serializers.ValidationError(
+                {"phone": "이미 사용 중인 전화번호입니다."}
+            )
+
+        return attrs
+
+    def create(self, validated_data):
+        user = User.objects.create_user(
+            email=validated_data["email"],
+            username=validated_data["username"],
+            name=validated_data["name"],
+            phone=validated_data["phone"],
+            password=validated_data["password"],
+            is_active=False,  # 이메일 인증 전까지는 비활성화
+        )
+        return user
+
+
+class VerifyEmailSerializer(serializers.Serializer):
+    token = serializers.CharField(required=True)
+    email = serializers.EmailField(required=True)
+
+    def validate(self, attrs):
+        token = attrs.get("token")
+        email = attrs.get("email")
+
+        if not token or not email:
+            raise serializers.ValidationError("토큰과 이메일은 필수 파라미터입니다.")
+
+        try:
+            user = User.objects.get(email=email)
+
+            # 토큰 검증
+            if default_token_generator.check_token(user, token):
+                # 사용자 활성화
+                user.is_active = True
+                user.save()
+
+                # 이메일 인증 상태 업데이트
+                EmailAddress.objects.filter(user=user, email=email).update(
+                    verified=True, primary=True
+                )
+
+                return {
+                    "user": user,
+                    "message": "회원가입이 완료되었습니다",
+                    "data": {
+                        "id": user.id,
+                        "name": user.name,
+                        "email": user.email,
+                        "phone": user.phone,
+                    },
+                }
+            else:
+                raise serializers.ValidationError("유효하지 않은 인증 토큰입니다.")
+
+        except User.DoesNotExist:
+            raise serializers.ValidationError(
+                "해당 이메일로 가입된 사용자를 찾을 수 없습니다."
+            )

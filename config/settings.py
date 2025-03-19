@@ -23,6 +23,7 @@ pymysql.install_as_MySQLdb()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+TEMPLATE_DIR = os.path.join(BASE_DIR, "templates")
 
 
 # Quick-start development settings - unsuitable for production
@@ -78,7 +79,7 @@ ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [TEMPLATE_DIR],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -194,3 +195,13 @@ KAKAO_CALLBACK_URL = KAKAO_CALLBACK_URL
 KAKAO_CLIENT_ID = KAKAO_CLIENT_ID
 KAKAO_CLIENT_SECRET = KAKAO_CLIENT_SECRET
 JWT_EXPIRES_IN = JWT_EXPIRES_IN
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.naver.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = EMAIL_HOST_USER
+EMAIL_HOST_PASSWORD = EMAIL_HOST_PASSWORD
+DEFAULT_FROM_EMAIL = f"ILOG <{EMAIL_HOST_USER}>"
+
+FRONTEND_URL = "http://127.0.0.1:8000/ilog/account"
