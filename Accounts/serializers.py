@@ -171,3 +171,17 @@ class SocialLoginSerializer(serializers.Serializer):
             "refresh_token": str(refresh),
             "expires_in": settings.JWT_EXPIRES_IN,  # settings 파일에서 가져오기
         }
+
+
+class LogoutSerializer(serializers.Serializer):
+    refresh_token = serializers.CharField()
+
+    def validate(self, attrs):
+        self.token = attrs["refresh_token"]
+        return attrs
+
+    def save(self, **kwargs):
+        try:
+            RefreshToken(self.token).blacklist()
+        except Exception as e:
+            raise serializers.ValidationError(str(e))
