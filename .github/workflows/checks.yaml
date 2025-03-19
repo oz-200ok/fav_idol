@@ -65,12 +65,12 @@ jobs:
               }
             }
           }" >> $GITHUB_WORKSPACE/secret.py
-          echo "NAVER_CALLBACK_URL = temp" >> $GITHUB_WORKSPACE/secret.py
-          echo "NAVER_CLIENT_ID = temp" >> $GITHUB_WORKSPACE/secret.py
-          echo "NAVER_CLIENT_SECRET = temp" >> $GITHUB_WORKSPACE/secret.py
-          echo "KAKAO_CALLBACK_URL = temp" >> $GITHUB_WORKSPACE/secret.py
-          echo "KAKAO_CLIENT_ID = temp" >> $GITHUB_WORKSPACE/secret.py
-          echo "KAKAO_CLIENT_SECRET = temp" >> $GITHUB_WORKSPACE/secret.py
+          echo "NAVER_CALLBACK_URL = 'temp'" >> $GITHUB_WORKSPACE/secret.py
+          echo "NAVER_CLIENT_ID = 'temp'" >> $GITHUB_WORKSPACE/secret.py
+          echo "NAVER_CLIENT_SECRET = 'temp'" >> $GITHUB_WORKSPACE/secret.py
+          echo "KAKAO_CALLBACK_URL = 'temp'" >> $GITHUB_WORKSPACE/secret.py
+          echo "KAKAO_CLIENT_ID = 'temp'" >> $GITHUB_WORKSPACE/secret.py
+          echo "KAKAO_CLIENT_SECRET = 'temp'" >> $GITHUB_WORKSPACE/secret.py
           echo "JWT_EXPIRES_IN = 86400" >> $GITHUB_WORKSPACE/secret.py
 
       - name: Create Test Database
