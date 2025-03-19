@@ -7,7 +7,7 @@ from .models import Agency, Group, Idol
 class AgencySerializer(serializers.ModelSerializer):
     class Meta:
         model = Agency
-        fields = ["id", "name", "contact"]  # 필요한 필드 정의
+        fields = ["name", "contact"]  # 필요한 필드 정의
 
     # 이름 중복 검증
     def validate_name(self, value):
@@ -21,16 +21,19 @@ class GroupSerializer(serializers.ModelSerializer):
     agency_name = serializers.CharField(
         source="agency.name", read_only=True
     )  # 관련 소속사 이름 추가 (읽기 전용)
+    image_url = serializers.CharField(read_only=True)  # 이미지 url 전달
+    member_count = serializers.IntegerField(read_only=True)  # 그룹 멤버 수 추가
 
     class Meta:
         model = Group
         fields = [
+            "agency_name",
             "id",
             "name",
-            "agency",
-            "agency_name",
             "sns",
             "color",
+            "image_url",
+            "member_count",
         ]  # 사용 필드 정의
 
     # 이름 중복 검증
@@ -48,10 +51,15 @@ class IdolSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Idol
-        fields = ["id", "name", "group", "group_name"]  # 사용 필드 정의
+        fields = ["name", "group", "group_name"]  # 사용 필드 정의
 
-    # 이름 중복 검증
-    def validate_name(self, value):
-        if Idol.objects.filter(name=value).exists():
-            raise serializers.ValidationError("같은 이름의 아이돌이 존재합니다.")
-        return value
+    # 같은 그룹 내에 들어가는 아이돌 이름이 중복될 경우를 검증
+    def validate(self, data):
+        name = data.get("name")
+        group = data.get("group")
+
+        if Idol.objects.filter(name=name, group=group).exists():
+            raise serializers.ValidationError(
+                "같은 그룹에 동일한 이름의 아이돌이 존재합니다."
+            )
+        return data
