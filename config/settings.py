@@ -46,6 +46,12 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sites",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.naver",
+    "allauth.socialaccount.providers.kakao",
     "rest_framework",
     "drf_yasg",
     "rest_framework_simplejwt",
@@ -63,6 +69,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -163,3 +170,26 @@ SWAGGER_SETTINGS = {
     },
     "USE_SESSION_AUTH": False,
 }
+
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
+]
+
+SITE_ID = 1
+
+# allauth 설정
+ACCOUNT_LOGIN_METHODS = ["email"]
+ACCOUNT_SIGNUP_FIELDS = ["email*"]
+SOCIALACCOUNT_STORE_TOKENS = True
+SOCIALACCOUNT_AUTO_SIGNUP = False
+SOCIALACCOUNT_LOGIN_ON_GET = False
+
+NAVER_CALLBACK_URL = NAVER_CALLBACK_URL
+NAVER_CLIENT_ID = NAVER_CLIENT_ID
+NAVER_CLIENT_SECRET = NAVER_CLIENT_SECRET
+
+KAKAO_CALLBACK_URL = KAKAO_CALLBACK_URL
+KAKAO_CLIENT_ID = KAKAO_CLIENT_ID
+KAKAO_CLIENT_SECRET = KAKAO_CLIENT_SECRET
+JWT_EXPIRES_IN = JWT_EXPIRES_IN
