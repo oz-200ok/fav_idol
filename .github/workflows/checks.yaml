@@ -72,6 +72,8 @@ jobs:
           echo "KAKAO_CLIENT_ID = 'temp'" >> $GITHUB_WORKSPACE/secret.py
           echo "KAKAO_CLIENT_SECRET = 'temp'" >> $GITHUB_WORKSPACE/secret.py
           echo "JWT_EXPIRES_IN = 86400" >> $GITHUB_WORKSPACE/secret.py
+          echo "EMAIL_HOST_USER = 'temp'" >> $GITHUB_WORKSPACE/secret.py
+          echo "EMAIL_HOST_PASSWORD = 'temp'" >> $GITHUB_WORKSPACE/secret.py
 
       - name: Create Test Database
         run: |
