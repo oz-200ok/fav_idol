@@ -27,8 +27,8 @@ jobs:
       DJANGO_ALLOWED_HOSTS: "localhost"
       MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
       MYSQL_USER: "root"
-      MYSQL_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
-      MYSQL_HOST: "localhost"
+      MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+      MYSQL_HOST: "db"
       MYSQL_PORT: "3306"
 
     steps:
