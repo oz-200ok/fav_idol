@@ -57,23 +57,9 @@ jobs:
         run: |
           poetry install --no-root
 
-      - name: Wait for MySQL to be ready
-        run: |
-          until mysqladmin ping -h "127.0.0.1" -P "3306" --silent; do
-            echo "Waiting for MySQL to be ready..."
-            sleep 5
-          done
-
-      - name: Wait for MySQL to be accessible on 'db'
-        run: |
-          until mysqladmin ping -h "db" -P "3306" --silent; do
-            echo "Waiting for MySQL to be accessible on 'db'..."
-            sleep 5
-          done
-
       - name: Create Test Database
         run: |
-          mysql -h db -P 3306 -uroot -p${{ secrets.MYSQL_ROOT_PASSWORD }} -e "CREATE DATABASE IF NOT EXISTS ${MYSQL_DATABASE} CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
+          mysql -h 127.0.0.1 -P 3306 -uroot -p${{ secrets.MYSQL_ROOT_PASSWORD }} -e "CREATE DATABASE IF NOT EXISTS test_fav_idol CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
 
       - name: Run Django Migration
         run: |
