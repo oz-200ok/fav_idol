@@ -25,10 +25,10 @@ jobs:
       DJANGO_SECRET_KEY: ${{ secrets.SECRET_KEY }}
       DJANGO_DEBUG: "False"
       DJANGO_ALLOWED_HOSTS: "localhost"
-      MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
+      MYSQL_DATABASE: "ilogdb"
       MYSQL_USER: "root"
-      MYSQL_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
-      MYSQL_HOST: "db"  # db는 MySQL 서비스 이름
+      MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+      MYSQL_HOST: "localhost"
       MYSQL_PORT: "3306"
 
     steps:
