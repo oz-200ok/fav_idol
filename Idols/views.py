@@ -9,6 +9,7 @@ from .models import Agency, Group, Idol
 from .permissions import IsAdminOrReadOnly, IsSuperUser
 from .serializers import AgencySerializer, GroupSerializer, IdolSerializer
 
+
 # 에이전시 리스트
 class AgencyListView(APIView):
     def get_permissions(self):
@@ -28,16 +29,16 @@ class AgencyListView(APIView):
         if serializer.is_valid():
             serializer.save()  # 검증된 데이터를 저장
             return Response({"data": serializer.data}, status=status.HTTP_201_CREATED)
-        return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+        )
 
     def delete(self, request, pk):
         agency = get_object_or_404(Agency, pk=pk)
-        deleted_data = {
-            "id": agency.id,
-            "name": agency.name
-        }
+        deleted_data = {"id": agency.id, "name": agency.name}
         agency.delete()
-        return Response({"data":deleted_data}, status=status.HTTP_200_OK)
+        return Response({"data": deleted_data}, status=status.HTTP_200_OK)
+
 
 # 그룹 리스트
 class GroupListView(APIView):
@@ -55,7 +56,9 @@ class GroupListView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response({"data": serializer.data}, status=status.HTTP_201_CREATED)
-        return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+        )
 
     def delete(self, request, pk):
         group = get_object_or_404(Group, pk=pk)
@@ -65,7 +68,8 @@ class GroupListView(APIView):
             "name": group.name,
         }
         group.delete()
-        return Response({"data":deleted_data}, status=status.HTTP_200_OK)
+        return Response({"data": deleted_data}, status=status.HTTP_200_OK)
+
 
 # 아이돌 리스트
 class IdolListView(APIView):
@@ -81,8 +85,10 @@ class IdolListView(APIView):
         serializer = IdolSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response({"data":serializer.data}, status=status.HTTP_201_CREATED)
-        return Response({"error":serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"data": serializer.data}, status=status.HTTP_201_CREATED)
+        return Response(
+            {"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+        )
 
     def delete(self, request, pk):
         idol = get_object_or_404(Idol, pk=pk)
@@ -95,4 +101,4 @@ class IdolListView(APIView):
 
         # 객체 삭제
         idol.delete()
-        return Response({"data":deleted_data}, status=status.HTTP_200_OK)
+        return Response({"data": deleted_data}, status=status.HTTP_200_OK)
