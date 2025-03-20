@@ -280,3 +280,26 @@ class VerifyEmailSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 "해당 이메일로 가입된 사용자를 찾을 수 없습니다."
             )
+
+
+class FindEmailSerializer(serializers.Serializer):
+    name = serializers.CharField(required=True)
+    phone = serializers.CharField(required=True)
+
+    def validate(self, attrs):
+        name = attrs.get("name")
+        phone = attrs.get("phone")
+
+        if not name or not phone:
+            raise serializers.ValidationError("이름과 전화번호는 필수 입력 항목입니다.")
+
+        try:
+            user = User.objects.get(name=name, phone=phone)
+            return {
+                "email": user.email,
+                "message": "회원님의 정보와 일치하는 이메일을 찾았습니다.",
+            }
+        except User.DoesNotExist:
+            raise serializers.ValidationError(
+                "입력하신 정보와 일치하는 회원이 없습니다."
+            )

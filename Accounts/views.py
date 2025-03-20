@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .serializers import (
+    FindEmailSerializer,
     LoginSerializer,
     LogoutSerializer,
     RegisterSerializer,
@@ -134,3 +135,22 @@ class VerifyEmailView(APIView):
                 status=status.HTTP_200_OK,
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class FindEmailView(APIView):
+    def post(self, request):
+        serializer = FindEmailSerializer(data=request.data)
+
+        if serializer.is_valid():
+            return Response(
+                {
+                    "success": True,
+                    "data": {"email": serializer.validated_data["email"]},
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        return Response(
+            {"status": "error", "message": serializer.errors},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
