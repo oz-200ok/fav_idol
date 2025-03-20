@@ -17,9 +17,7 @@ class UserGroupSubscribeTests(TestCase):
         self.agency = Agency.objects.create(
             name="SM Entertainment",
             contact="010-1234-5678",
-            image_name="sm_logo",
-            image_url="http://example.com/sm_logo.png",
-            image_ext="png",
+            image="http://example.com/sm_logo.png",
         )
 
         self.group = Group.objects.create(
@@ -27,9 +25,7 @@ class UserGroupSubscribeTests(TestCase):
             name="Test Group",
             sns="http://twitter.com/testgroup",
             color="blue",
-            image_name="test_group_logo",
-            image_url="http://example.com/test_group_logo.png",
-            image_ext="png",
+            image="http://example.com/test_group_logo.png",
         )
         self.subscription = UserGroupSubscribe.objects.create(
             user=self.user, group=self.group, notification=True
@@ -61,9 +57,7 @@ class UserGroupSubscribeTests(TestCase):
             name="Another Test Group",
             sns="http://twitter.com/anothergroup",
             color="red",
-            image_name="another_group_logo",
-            image_url="http://example.com/another_group_logo.png",
-            image_ext="jpg",
+            image="http://example.com/another_group_logo.png",
         )
         another_subscription = UserGroupSubscribe.objects.create(
             user=self.user, group=another_group, notification=True
