@@ -25,7 +25,7 @@ jobs:
       DJANGO_SECRET_KEY: ${{ secrets.SECRET_KEY }}
       DJANGO_DEBUG: "False"
       DJANGO_ALLOWED_HOSTS: "localhost"
-      MYSQL_DATABASE: "ilogdb"
+      MYSQL_DATABASE: "test_fav_idol"
       MYSQL_USER: "root"
       MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
       MYSQL_HOST: "localhost"
