@@ -1,3 +1,11 @@
+name: Code Quality Checks
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
 jobs:
   ci:
     runs-on: ubuntu-latest
@@ -19,8 +27,8 @@ jobs:
       DJANGO_ALLOWED_HOSTS: "localhost"
       MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
       MYSQL_USER: "root"
-      MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
-      MYSQL_HOST: "db" 
+      MYSQL_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+      MYSQL_HOST: "db"  # db는 MySQL 서비스 이름
       MYSQL_PORT: "3306"
 
     steps:
