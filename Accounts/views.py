@@ -10,9 +10,11 @@ from rest_framework.views import APIView
 
 from .serializers import (
     FindEmailSerializer,
+    FindPasswordSerializer,
     LoginSerializer,
     LogoutSerializer,
     RegisterSerializer,
+    ResetPasswordSerializer,
     SocialLoginSerializer,
     VerifyEmailSerializer,
 )
@@ -152,5 +154,31 @@ class FindEmailView(APIView):
 
         return Response(
             {"status": "error", "message": serializer.errors},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+
+class FindPasswordView(APIView):
+    def post(self, request):
+        serializer = FindPasswordSerializer(data=request.data)
+
+        if serializer.is_valid():
+            return Response({"success": True}, status=status.HTTP_200_OK)
+
+        return Response(
+            {"success": False, "message": serializer.errors},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+
+class ResetPasswordView(APIView):
+    def post(self, request):
+        serializer = ResetPasswordSerializer(data=request.data)
+
+        if serializer.is_valid():
+            return Response({"success": True}, status=status.HTTP_201_CREATED)
+
+        return Response(
+            {"success": False, "message": serializer.errors},
             status=status.HTTP_400_BAD_REQUEST,
         )

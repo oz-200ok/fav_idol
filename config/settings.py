@@ -15,7 +15,6 @@ from datetime import timedelta
 from pathlib import Path
 
 import pymysql
-
 from dotenv import load_dotenv
 
 pymysql.install_as_MySQLdb()
