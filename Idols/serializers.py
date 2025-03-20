@@ -21,7 +21,6 @@ class GroupSerializer(serializers.ModelSerializer):
     agency_name = serializers.CharField(
         source="agency.name", read_only=True
     )  # 관련 소속사 이름 추가 (읽기 전용)
-    image_url = serializers.CharField(read_only=True)  # 이미지 url 전달
     member_count = serializers.IntegerField(read_only=True)  # 그룹 멤버 수 추가
 
     class Meta:
@@ -32,7 +31,7 @@ class GroupSerializer(serializers.ModelSerializer):
             "name",
             "sns",
             "color",
-            "image_url",
+            "image",
             "member_count",
         ]  # 사용 필드 정의
 
