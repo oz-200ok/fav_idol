@@ -16,7 +16,7 @@ from pathlib import Path
 
 import pymysql
 
-from secret import *
+from dotenv import load_dotenv
 
 pymysql.install_as_MySQLdb()
 
@@ -25,15 +25,17 @@ pymysql.install_as_MySQLdb()
 BASE_DIR = Path(__file__).resolve().parent.parent
 TEMPLATE_DIR = os.path.join(BASE_DIR, "templates")
 
+# .env 파일 로드
+load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = SECRET_KEY
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DJANGO_DEBUG", "True") == "True"
+DEBUG = os.getenv("DJANGO_DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
@@ -98,7 +100,20 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = DATABASES
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": os.getenv("MYSQL_DATABASE"),
+        "USER": os.getenv("MYSQL_USER"),
+        "PASSWORD": os.getenv("MYSQL_PASSWORD"),
+        "HOST": os.getenv("MYSQL_HOST"),
+        "PORT": os.getenv("MYSQL_PORT"),
+        "OPTIONS": {
+            "charset": "utf8mb4",
+            "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
+    }
+}
 
 
 # Password validation
@@ -187,21 +202,25 @@ SOCIALACCOUNT_STORE_TOKENS = True
 SOCIALACCOUNT_AUTO_SIGNUP = False
 SOCIALACCOUNT_LOGIN_ON_GET = False
 
-NAVER_CALLBACK_URL = NAVER_CALLBACK_URL
-NAVER_CLIENT_ID = NAVER_CLIENT_ID
-NAVER_CLIENT_SECRET = NAVER_CLIENT_SECRET
+# 소셜 로그인 설정
+NAVER_CLIENT_ID = os.getenv("NAVER_CLIENT_ID")
+NAVER_CLIENT_SECRET = os.getenv("NAVER_CLIENT_SECRET")
+NAVER_CALLBACK_URL = os.getenv("NAVER_CALLBACK_URL")
 
-KAKAO_CALLBACK_URL = KAKAO_CALLBACK_URL
-KAKAO_CLIENT_ID = KAKAO_CLIENT_ID
-KAKAO_CLIENT_SECRET = KAKAO_CLIENT_SECRET
-JWT_EXPIRES_IN = JWT_EXPIRES_IN
+KAKAO_CLIENT_ID = os.getenv("KAKAO_CLIENT_ID")
+KAKAO_CLIENT_SECRET = os.getenv("KAKAO_CLIENT_SECRET")
+KAKAO_CALLBACK_URL = os.getenv("KAKAO_CALLBACK_URL")
 
+# JWT 설정
+JWT_EXPIRES_IN = int(os.getenv("JWT_EXPIRES_IN", 86400))
+
+# 이메일 설정
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.naver.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = EMAIL_HOST_USER
-EMAIL_HOST_PASSWORD = EMAIL_HOST_PASSWORD
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = f"ILOG <{EMAIL_HOST_USER}>"
 
 FRONTEND_URL = "http://127.0.0.1:8000/ilog/account"

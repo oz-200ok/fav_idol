@@ -21,6 +21,15 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
+    env:
+      DJANGO_SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      DJANGO_DEBUG: "False"
+      DJANGO_ALLOWED_HOSTS: "localhost"
+      MYSQL_DATABASE: "test_fav_idol"
+      MYSQL_USER: "root"
+      MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+      MYSQL_HOST: "localhost"
+      MYSQL_PORT: "3306"
 
     steps:
       - name: Checkout code
@@ -47,33 +56,6 @@ jobs:
       - name: Install Packages & Libraries
         run: |
           poetry install --no-root
-
-      - name: Create secret.py
-        run: |
-          echo "SECRET_KEY = '${{ secrets.SECRET_KEY }}'" > $GITHUB_WORKSPACE/secret.py
-          echo "DATABASES = {
-            'default': {
-              'ENGINE': 'django.db.backends.mysql',
-              'NAME': 'test_fav_idol', 
-              'USER': 'root', 
-              'PASSWORD': '${{ secrets.MYSQL_ROOT_PASSWORD }}', 
-              'HOST': '127.0.0.1',
-              'PORT': '3306',
-              'OPTIONS': {
-                'charset': 'utf8mb4',
-                'init_command': \"SET sql_mode='STRICT_TRANS_TABLES'\",
-              }
-            }
-          }" >> $GITHUB_WORKSPACE/secret.py
-          echo "NAVER_CALLBACK_URL = 'temp'" >> $GITHUB_WORKSPACE/secret.py
-          echo "NAVER_CLIENT_ID = 'temp'" >> $GITHUB_WORKSPACE/secret.py
-          echo "NAVER_CLIENT_SECRET = 'temp'" >> $GITHUB_WORKSPACE/secret.py
-          echo "KAKAO_CALLBACK_URL = 'temp'" >> $GITHUB_WORKSPACE/secret.py
-          echo "KAKAO_CLIENT_ID = 'temp'" >> $GITHUB_WORKSPACE/secret.py
-          echo "KAKAO_CLIENT_SECRET = 'temp'" >> $GITHUB_WORKSPACE/secret.py
-          echo "JWT_EXPIRES_IN = 86400" >> $GITHUB_WORKSPACE/secret.py
-          echo "EMAIL_HOST_USER = 'temp'" >> $GITHUB_WORKSPACE/secret.py
-          echo "EMAIL_HOST_PASSWORD = 'temp'" >> $GITHUB_WORKSPACE/secret.py
 
       - name: Create Test Database
         run: |
