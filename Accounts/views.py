@@ -42,9 +42,7 @@ class LoginView(APIView):
                 status=status.HTTP_200_OK,
             )
 
-        Response(
-            {"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-        )
+        Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class SocialLoginView(APIView):
