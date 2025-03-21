@@ -167,24 +167,27 @@ class UserProfileView(generics.RetrieveAPIView):
         serializer = self.get_serializer(instance)
         return Response({"data": serializer.data}, status=status.HTTP_200_OK)
 
+
 class UserProfileUpdateView(generics.UpdateAPIView):
     serializer_class = UserProfileUpdateSerializer
     permission_classes = [IsAuthenticated]
-    
+
     def get_object(self):
         return self.request.user
-    
+
     def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
+        partial = kwargs.pop("partial", False)
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
-        
+
         return Response(
-            {"data": {
-                "username": instance.username,
-                "phone": instance.phone,
-            }},
-            status=status.HTTP_201_CREATED
+            {
+                "data": {
+                    "username": instance.username,
+                    "phone": instance.phone,
+                }
+            },
+            status=status.HTTP_201_CREATED,
         )

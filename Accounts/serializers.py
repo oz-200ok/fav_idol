@@ -107,17 +107,17 @@ class RegisterSerializer(serializers.ModelSerializer):
         is_valid, error = UserService.check_email_uniqueness(attrs.get("email"))
         if not is_valid:
             raise serializers.ValidationError({"email": error})
-        
+
         # 닉네임 중복 검사
         is_valid, error = UserService.check_username_uniqueness(attrs.get("username"))
         if not is_valid:
             raise serializers.ValidationError({"username": error})
-        
+
         # 전화번호 중복 검사
         is_valid, error = UserService.check_phone_uniqueness(attrs.get("phone"))
         if not is_valid:
             raise serializers.ValidationError({"phone": error})
-            
+
         return attrs
 
     def create(self, validated_data):
@@ -230,60 +230,63 @@ class UserProfileSerializer(serializers.ModelSerializer):
         fields = ("id", "email", "username", "name", "phone")
         read_only_fields = ("id", "email", "username", "name", "phone")
 
+
 class UserProfileUpdateSerializer(serializers.ModelSerializer):
     current_password = serializers.CharField(write_only=True, required=False)
     password = serializers.CharField(write_only=True, required=False)
-    
+
     class Meta:
         model = User
-        fields = ('username', 'phone', 'password', 'current_password')
-        
+        fields = ("username", "phone", "password", "current_password")
+
     def validate(self, attrs):
         # 비밀번호 변경 요청이 있는 경우
-        if 'password' in attrs:
-            if not attrs.get('current_password'):
-                raise serializers.ValidationError({"current_password": "현재 비밀번호를 입력해주세요."})
-                
+        if "password" in attrs:
+            if not attrs.get("current_password"):
+                raise serializers.ValidationError(
+                    {"current_password": "현재 비밀번호를 입력해주세요."}
+                )
+
             # 현재 비밀번호 확인
             user = self.instance
             is_valid, error = UserService.verify_current_password(
-                user, attrs.get('current_password')
+                user, attrs.get("current_password")
             )
             if not is_valid:
                 raise serializers.ValidationError({"current_password": error})
-                
+
         # 닉네임 중복 검사
-        if 'username' in attrs:
+        if "username" in attrs:
             is_valid, error = UserService.check_username_uniqueness(
-                attrs.get('username'), self.instance.id
+                attrs.get("username"), self.instance.id
             )
             if not is_valid:
                 raise serializers.ValidationError({"username": error})
-                
+
         # 전화번호 중복 검사
-        if 'phone' in attrs:
+        if "phone" in attrs:
             is_valid, error = UserService.check_phone_uniqueness(
-                attrs.get('phone'), self.instance.id
+                attrs.get("phone"), self.instance.id
             )
             if not is_valid:
                 raise serializers.ValidationError({"phone": error})
-                
+
         return attrs
-    
+
     def update(self, instance, validated_data):
         # 비밀번호 필드 제거
-        current_password = validated_data.pop('current_password', None)
-        password = validated_data.pop('password', None)
-        
+        current_password = validated_data.pop("current_password", None)
+        password = validated_data.pop("password", None)
+
         # 프로필 정보 업데이트
         instance = UserService.update_user_profile(
-            instance, 
-            username=validated_data.get('username'),
-            phone=validated_data.get('phone')
+            instance,
+            username=validated_data.get("username"),
+            phone=validated_data.get("phone"),
         )
-        
+
         # 비밀번호 변경
         if password:
             UserService.update_password(instance, password)
-            
+
         return instance

@@ -223,13 +223,13 @@ class UserService:
             verified=True, primary=True
         )
         return user
-    
+
     @staticmethod
     def check_email_uniqueness(email):
         if User.objects.filter(email=email).exists():
             return False, "이미 사용 중인 이메일입니다."
         return True, None
-        
+
     @staticmethod
     def check_username_uniqueness(username, user_id=None):
         query = User.objects.filter(username=username)
