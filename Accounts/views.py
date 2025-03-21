@@ -204,15 +204,16 @@ class CheckDuplicateView(generics.GenericAPIView):
         # 중복이 없으면 여기까지 실행됨 (중복 있으면 ValidationError 발생)
         return Response({"data": serializer.validated_data}, status=status.HTTP_200_OK)
 
+
 class UserDeleteView(generics.DestroyAPIView):
     permission_classes = [IsAuthenticated]
-    
+
     def get_object(self):
         return self.request.user
-    
+
     def destroy(self, request, *args, **kwargs):
         user = self.get_object()
-        
+
         UserService.delete_user_account(user)
-        
+
         return Response(status=status.HTTP_200_OK)
