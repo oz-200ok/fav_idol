@@ -9,9 +9,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .serializers import (
+    FindEmailSerializer,
+    FindPasswordSerializer,
     LoginSerializer,
     LogoutSerializer,
     RegisterSerializer,
+    ResetPasswordSerializer,
     SocialLoginSerializer,
     VerifyEmailSerializer,
 )
@@ -29,15 +32,17 @@ class LoginView(APIView):
 
             return Response(
                 {
-                    "access_token": access_token,
-                    "refresh_token": refresh_token,
-                    "expires_in": expires_in,
-                    "user": {"id": user.id, "email": user.email},
+                    "data": {
+                        "access_token": access_token,
+                        "refresh_token": refresh_token,
+                        "expires_in": expires_in,
+                        "user": {"id": user.id, "email": user.email},
+                    }
                 },
                 status=status.HTTP_200_OK,
             )
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class SocialLoginView(APIView):
@@ -54,15 +59,19 @@ class SocialLoginView(APIView):
 
             return Response(
                 {
-                    "access_token": access_token,
-                    "refresh_token": refresh_token,
-                    "expires_in": expires_in,
-                    "user": {"id": user.id, "email": user.email},
+                    "data": {
+                        "access_token": access_token,
+                        "refresh_token": refresh_token,
+                        "expires_in": expires_in,
+                        "user": {"id": user.id, "email": user.email},
+                    }
                 },
                 status=status.HTTP_200_OK,
             )
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class LogoutView(APIView):
@@ -73,9 +82,12 @@ class LogoutView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response(
-                {"message": "로그아웃 되었습니다."}, status=status.HTTP_200_OK
+                status=status.HTTP_200_OK,
             )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(
+            {"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class RegisterView(APIView):
@@ -108,18 +120,19 @@ class RegisterView(APIView):
 
             return Response(
                 {
-                    "message": "회원 가입이 완료되었으며, 인증 이메일이 발송되었습니다.",
                     "data": {
                         "user_id": user.id,
                         "email": user.email,
                         "is_verified": user.is_active,
                         "resend_available_in": 600,  # 10분 후 재발송 가능
-                    },
+                    }
                 },
                 status=status.HTTP_201_CREATED,
             )
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class VerifyEmailView(APIView):
@@ -128,9 +141,51 @@ class VerifyEmailView(APIView):
         if serializer.is_valid():
             return Response(
                 {
-                    "message": serializer.validated_data["message"],
-                    "data": serializer.validated_data["data"],
+                    "data": {
+                        **serializer.validated_data["data"],
+                    }
                 },
                 status=status.HTTP_200_OK,
             )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+        )
+
+
+class FindEmailView(APIView):
+    def post(self, request):
+        serializer = FindEmailSerializer(data=request.data)
+
+        if serializer.is_valid():
+            return Response(
+                {"data": {"email": serializer.validated_data["email"]}},
+                status=status.HTTP_200_OK,
+            )
+
+        return Response(
+            {"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+        )
+
+
+class FindPasswordView(APIView):
+    def post(self, request):
+        serializer = FindPasswordSerializer(data=request.data)
+
+        if serializer.is_valid():
+            return Response(status=status.HTTP_200_OK)
+
+        return Response(
+            {"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+        )
+
+
+class ResetPasswordView(APIView):
+    def post(self, request):
+        serializer = ResetPasswordSerializer(data=request.data)
+
+        if serializer.is_valid():
+            return Response(status=status.HTTP_201_CREATED)
+
+        return Response(
+            {"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+        )

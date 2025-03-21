@@ -26,9 +26,7 @@ class AgencyGroupIdolTests(TestCase):
         self.agency = Agency.objects.create(
             name="SM Entertainment",
             contact="010-1234-5678",
-            image_name="sm_logo",
-            image_url="http://example.com/sm_logo.png",
-            image_ext="png",
+            image="http://example.com/sm_logo.png",
         )
 
         # 그룹(Group) 생성
@@ -37,37 +35,33 @@ class AgencyGroupIdolTests(TestCase):
             name="EXO",
             sns="http://twitter.com/exo",
             color="black",
-            image_name="exo_logo",
-            image_url="http://example.com/exo_logo.png",
-            image_ext="jpg",
+            image="http://example.com/exo_logo.png",
         )
 
         # 아이돌(Idol) 생성
         self.idol = Idol.objects.create(
             group=self.group,
             name="Baekhyun",
-            image_name="baekhyun_pic",
-            image_url="http://example.com/baekhyun_pic.png",
-            image_ext="png",
+            image="http://example.com/baekhyun_pic.png",
         )
 
     def test_agency_creation(self):
         # 소속사가 잘 생성되었는지 확인
         self.assertEqual(self.agency.name, "SM Entertainment")
         self.assertEqual(self.agency.contact, "010-1234-5678")
-        self.assertEqual(self.agency.image_url, "http://example.com/sm_logo.png")
+        self.assertEqual(self.agency.image, "http://example.com/sm_logo.png")
 
     def test_group_creation(self):
         # 그룹이 잘 생성되었는지 확인
         self.assertEqual(self.group.name, "EXO")
         self.assertEqual(self.group.agency, self.agency)
-        self.assertEqual(self.group.image_url, "http://example.com/exo_logo.png")
+        self.assertEqual(self.group.image, "http://example.com/exo_logo.png")
 
     def test_idol_creation(self):
         # 아이돌이 잘 생성되었는지 확인
         self.assertEqual(self.idol.name, "Baekhyun")
         self.assertEqual(self.idol.group, self.group)
-        self.assertEqual(self.idol.image_url, "http://example.com/baekhyun_pic.png")
+        self.assertEqual(self.idol.image, "http://example.com/baekhyun_pic.png")
 
     def test_inline_relationships(self):
         # Group이 Agency와 연결되었는지 확인

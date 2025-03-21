@@ -8,6 +8,8 @@ from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -279,4 +281,93 @@ class VerifyEmailSerializer(serializers.Serializer):
         except User.DoesNotExist:
             raise serializers.ValidationError(
                 "해당 이메일로 가입된 사용자를 찾을 수 없습니다."
+            )
+
+
+class FindEmailSerializer(serializers.Serializer):
+    name = serializers.CharField(required=True)
+    phone = serializers.CharField(required=True)
+
+    def validate(self, attrs):
+        name = attrs.get("name")
+        phone = attrs.get("phone")
+
+        if not name or not phone:
+            raise serializers.ValidationError("이름과 전화번호는 필수 입력 항목입니다.")
+
+        try:
+            user = User.objects.get(name=name, phone=phone)
+            return {
+                "email": user.email,
+                "message": "회원님의 정보와 일치하는 이메일을 찾았습니다.",
+            }
+        except User.DoesNotExist:
+            raise serializers.ValidationError(
+                "입력하신 정보와 일치하는 회원이 없습니다."
+            )
+
+
+class FindPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+
+    def validate(self, attrs):
+        email = attrs.get("email")
+
+        try:
+            user = User.objects.get(email=email)
+
+            # 비밀번호 재설정 토큰 생성
+            token = default_token_generator.make_token(user)
+
+            # 비밀번호 재설정 이메일 발송
+            reset_url = (
+                f"{settings.FRONTEND_URL}/reset-password?token={token}&email={email}"
+            )
+            subject = "I-LOG 비밀번호 재설정 안내"
+            message = render_to_string(
+                "password_reset_email.html", {"user": user, "reset_url": reset_url}
+            )
+
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [email],
+                fail_silently=False,
+                html_message=message,
+            )
+
+            return attrs
+
+        except User.DoesNotExist:
+            raise serializers.ValidationError(
+                "입력하신 이메일로 등록된 계정이 없습니다."
+            )
+
+
+class ResetPasswordSerializer(serializers.Serializer):
+    token = serializers.CharField(required=True)
+    email = serializers.EmailField(required=True)
+    new_password = serializers.CharField(required=True, write_only=True)
+
+    def validate(self, attrs):
+        token = attrs.get("token")
+        email = attrs.get("email")
+        new_password = attrs.get("new_password")
+
+        try:
+            user = User.objects.get(email=email)
+
+            # 토큰 검증
+            if default_token_generator.check_token(user, token):
+                # 비밀번호 변경
+                user.set_password(new_password)
+                user.save()
+                return attrs
+            else:
+                raise serializers.ValidationError("유효하지 않은 토큰입니다.")
+
+        except User.DoesNotExist:
+            raise serializers.ValidationError(
+                "입력하신 이메일로 등록된 계정이 없습니다."
             )
