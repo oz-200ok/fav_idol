@@ -10,6 +10,7 @@ from .serializers import (
     RegisterSerializer,
     ResetPasswordSerializer,
     SocialLoginSerializer,
+    UserProfileSerializer,
     VerifyEmailSerializer,
 )
 from .services import EmailService
@@ -151,3 +152,16 @@ class ResetPasswordView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         return Response(status=status.HTTP_201_CREATED)
+
+
+class UserProfileView(generics.RetrieveAPIView):
+    serializer_class = UserProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response({"data": serializer.data}, status=status.HTTP_200_OK)
