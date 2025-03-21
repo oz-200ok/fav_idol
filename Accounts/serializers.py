@@ -169,6 +169,7 @@ class VerifyEmailSerializer(serializers.Serializer):
         else:
             raise serializers.ValidationError("유효하지 않은 인증 토큰입니다.")
 
+
 class FindEmailSerializer(serializers.Serializer):
     name = serializers.CharField(required=True)
     phone = serializers.CharField(required=True)
@@ -188,3 +189,40 @@ class FindEmailSerializer(serializers.Serializer):
             "email": user.email,
             "message": "회원님의 정보와 일치하는 이메일을 찾았습니다.",
         }
+
+
+class FindPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+
+    def validate(self, attrs):
+        email = attrs.get("email")
+        user, error = UserService.find_user_by_email(email)
+        if error:
+            raise serializers.ValidationError(error)
+
+        # 비밀번호 재설정 이메일 발송
+        EmailService.send_password_reset_email(user)
+        return attrs
+
+
+class ResetPasswordSerializer(serializers.Serializer):
+    token = serializers.CharField(required=True)
+    email = serializers.EmailField(required=True)
+    new_password = serializers.CharField(required=True, write_only=True)
+
+    def validate(self, attrs):
+        token = attrs.get("token")
+        email = attrs.get("email")
+        new_password = attrs.get("new_password")
+
+        user, error = UserService.find_user_by_email(email)
+        if error:
+            raise serializers.ValidationError(error)
+
+        # 토큰 검증
+        if EmailService.verify_token(user, token):
+            # 비밀번호 변경
+            UserService.reset_password(user, new_password)
+            return attrs
+        else:
+            raise serializers.ValidationError("유효하지 않은 토큰입니다.")

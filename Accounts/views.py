@@ -4,9 +4,11 @@ from rest_framework.response import Response
 
 from .serializers import (
     FindEmailSerializer,
+    FindPasswordSerializer,
     LoginSerializer,
     LogoutSerializer,
     RegisterSerializer,
+    ResetPasswordSerializer,
     SocialLoginSerializer,
     VerifyEmailSerializer,
 )
@@ -120,9 +122,10 @@ class VerifyEmailView(generics.RetrieveAPIView):
             status=status.HTTP_200_OK,
         )
 
+
 class FindEmailView(generics.CreateAPIView):
     serializer_class = FindEmailSerializer
-    
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -132,3 +135,19 @@ class FindEmailView(generics.CreateAPIView):
         )
 
 
+class FindPasswordView(generics.CreateAPIView):
+    serializer_class = FindPasswordSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response(status=status.HTTP_200_OK)
+
+
+class ResetPasswordView(generics.CreateAPIView):
+    serializer_class = ResetPasswordSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response(status=status.HTTP_201_CREATED)
