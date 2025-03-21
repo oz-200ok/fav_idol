@@ -227,8 +227,9 @@ class ResetPasswordSerializer(serializers.Serializer):
         else:
             raise serializers.ValidationError("유효하지 않은 토큰입니다.")
 
+
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'email', 'username', 'name', 'phone')
-        read_only_fields = ('id', 'email', 'username', 'name', 'phone')
+        fields = ("id", "email", "username", "name", "phone")
+        read_only_fields = ("id", "email", "username", "name", "phone")
