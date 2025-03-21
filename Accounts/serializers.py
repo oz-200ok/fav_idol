@@ -169,3 +169,22 @@ class VerifyEmailSerializer(serializers.Serializer):
         else:
             raise serializers.ValidationError("유효하지 않은 인증 토큰입니다.")
 
+class FindEmailSerializer(serializers.Serializer):
+    name = serializers.CharField(required=True)
+    phone = serializers.CharField(required=True)
+
+    def validate(self, attrs):
+        name = attrs.get("name")
+        phone = attrs.get("phone")
+
+        if not name or not phone:
+            raise serializers.ValidationError("이름과 전화번호는 필수 입력 항목입니다.")
+
+        user, error = UserService.find_user_by_name_and_phone(name, phone)
+        if error:
+            raise serializers.ValidationError(error)
+
+        return {
+            "email": user.email,
+            "message": "회원님의 정보와 일치하는 이메일을 찾았습니다.",
+        }

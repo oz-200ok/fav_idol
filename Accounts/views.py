@@ -3,6 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .serializers import (
+    FindEmailSerializer,
     LoginSerializer,
     LogoutSerializer,
     RegisterSerializer,
@@ -118,4 +119,16 @@ class VerifyEmailView(generics.RetrieveAPIView):
             },
             status=status.HTTP_200_OK,
         )
+
+class FindEmailView(generics.CreateAPIView):
+    serializer_class = FindEmailSerializer
+    
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response(
+            {"data": {"email": serializer.validated_data["email"]}},
+            status=status.HTTP_200_OK,
+        )
+
 
