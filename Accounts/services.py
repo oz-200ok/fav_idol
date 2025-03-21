@@ -270,3 +270,8 @@ class UserService:
         user.set_password(new_password)
         user.save()
         return user
+
+    @staticmethod
+    def delete_user_account(user):
+        user.delete()
+        return True

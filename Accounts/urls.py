@@ -9,6 +9,7 @@ from .views import (
     RegisterView,
     ResetPasswordView,
     SocialLoginView,
+    UserDeleteView,
     UserProfileUpdateView,
     UserProfileView,
     VerifyEmailView,
@@ -26,4 +27,5 @@ urlpatterns = [
     path("me/", UserProfileView.as_view(), name="user_profile"),
     path("profile/", UserProfileUpdateView.as_view(), name="user-profile-update"),
     path("check-duplicate/", CheckDuplicateView.as_view(), name="check-duplicate"),
+    path("delete/", UserDeleteView.as_view(), name="account-delete"),
 ]
