@@ -1,4 +1,5 @@
 from rest_framework import serializers
+
 from .services import AuthService, SocialLoginService
 
 
@@ -24,7 +25,8 @@ class LoginSerializer(serializers.Serializer):
             "refresh_token": tokens["refresh_token"],
             "expires_in": tokens["expires_in"],
         }
-        
+
+
 class SocialLoginSerializer(serializers.Serializer):
     social_type = serializers.CharField(required=True)
     code = serializers.CharField(required=True)
@@ -35,7 +37,7 @@ class SocialLoginSerializer(serializers.Serializer):
 
         if not social_type or not code:
             raise serializers.ValidationError("소셜 타입과 인가 코드는 필수입니다.")
-            
+
         if social_type not in ["naver", "kakao"]:
             raise serializers.ValidationError("지원하지 않는 소셜 로그인 타입입니다.")
 
@@ -51,9 +53,7 @@ class SocialLoginSerializer(serializers.Serializer):
 
         # 사용자 정보 요청
         social_info, error = SocialLoginService.get_user_info(
-            adapter_config["adapter_class"], 
-            self.context["request"], 
-            access_token
+            adapter_config["adapter_class"], self.context["request"], access_token
         )
         if error:
             raise serializers.ValidationError(error)

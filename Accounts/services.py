@@ -1,28 +1,29 @@
-from rest_framework_simplejwt.tokens import RefreshToken
-from django.conf import settings
+import requests
 from allauth.account.models import EmailAddress
 from allauth.socialaccount.models import SocialAccount, SocialToken
 from allauth.socialaccount.providers.kakao.views import KakaoOAuth2Adapter
 from allauth.socialaccount.providers.naver.views import NaverOAuth2Adapter
-import requests
-from .models import User
+from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
-from django.template.loader import render_to_string
 from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from rest_framework_simplejwt.tokens import RefreshToken
 
+from .models import User
 
 
 class AuthService:
     @staticmethod
     def authenticate_user(email, password):
         from django.contrib.auth import authenticate
+
         user = authenticate(email=email, password=password)
         if not user:
             return None, "이메일 또는 비밀번호가 올바르지 않습니다."
         if not user.is_active:
             return None, "이메일 인증이 필요합니다."
         return user, None
-    
+
     @staticmethod
     def generate_tokens(user):
         refresh = RefreshToken.for_user(user)
@@ -31,7 +32,8 @@ class AuthService:
             "refresh_token": str(refresh),
             "expires_in": settings.JWT_EXPIRES_IN,
         }
-        
+
+
 class SocialLoginService:
     @staticmethod
     def get_adapter_config(social_type):
@@ -50,7 +52,7 @@ class SocialLoginService:
                 "client_secret": settings.KAKAO_CLIENT_SECRET,
             }
         return None
-    
+
     @staticmethod
     def get_access_token(adapter_config, code):
         token_url = adapter_config["adapter_class"].access_token_url
@@ -61,33 +63,33 @@ class SocialLoginService:
             "code": code,
             "redirect_uri": adapter_config["callback_url"],
         }
-        
+
         try:
             token_response = requests.post(token_url, data=token_params)
             token_response.raise_for_status()
             token_data = token_response.json()
-            
+
             if "access_token" not in token_data:
                 return None, "액세스 토큰을 얻는데 실패했습니다."
-                
+
             return token_data["access_token"], None
         except requests.RequestException as e:
             error_detail = str(e)
             if hasattr(e, "response") and e.response:
                 error_detail += f" 응답: {e.response.text}"
             return None, f"액세스 토큰을 얻는 데 실패했습니다: {error_detail}"
-    
+
     @staticmethod
     def get_user_info(adapter_class, request, access_token):
         adapter = adapter_class(request)
         token = SocialToken(token=access_token)
-        
+
         try:
             social_info = adapter.complete_login(request, None, token=token)
             return social_info, None
         except Exception as e:
             return None, f"사용자 정보를 가져오는 데 실패했습니다: {e}"
-    
+
     @staticmethod
     def get_or_create_social_user(social_type, social_info):
         email = social_info.user.email
@@ -130,18 +132,21 @@ class SocialLoginService:
                 )
         return user
 
+
 class EmailService:
     @staticmethod
     def send_verification_email(user):
         token = default_token_generator.make_token(user)
-        verification_url = f"{settings.FRONTEND_URL}/verify-email?token={token}&email={user.email}"
-        
+        verification_url = (
+            f"{settings.FRONTEND_URL}/verify-email?token={token}&email={user.email}"
+        )
+
         subject = "ILOG 회원가입 인증 메일입니다."
         message = render_to_string(
             "email_verification.html",
             {"user": user, "verification_url": verification_url},
         )
-        
+
         send_mail(
             subject,
             message,
@@ -150,20 +155,21 @@ class EmailService:
             fail_silently=False,
             html_message=message,
         )
-        
+
         return token
-    
+
     @staticmethod
     def send_password_reset_email(user):
         token = default_token_generator.make_token(user)
-        reset_url = f"{settings.FRONTEND_URL}/reset-password?token={token}&email={user.email}"
-        
+        reset_url = (
+            f"{settings.FRONTEND_URL}/reset-password?token={token}&email={user.email}"
+        )
+
         subject = "ILOG 비밀번호 재설정 안내"
         message = render_to_string(
-            "password_reset_email.html", 
-            {"user": user, "reset_url": reset_url}
+            "password_reset_email.html", {"user": user, "reset_url": reset_url}
         )
-        
+
         send_mail(
             subject,
             message,
@@ -172,9 +178,9 @@ class EmailService:
             fail_silently=False,
             html_message=message,
         )
-        
+
         return token
-    
+
     @staticmethod
     def verify_token(user, token):
         return default_token_generator.check_token(user, token)
@@ -187,7 +193,7 @@ class UserService:
             return User.objects.get(email=email), None
         except User.DoesNotExist:
             return None, "입력하신 이메일로 등록된 계정이 없습니다."
-    
+
     @staticmethod
     def find_user_by_name_and_phone(name, phone):
         try:
@@ -195,13 +201,13 @@ class UserService:
             return user, None
         except User.DoesNotExist:
             return None, "입력하신 정보와 일치하는 회원이 없습니다."
-    
+
     @staticmethod
     def reset_password(user, new_password):
         user.set_password(new_password)
         user.save()
         return True
-    
+
     @staticmethod
     def activate_user(user):
         user.is_active = True
