@@ -1,6 +1,6 @@
 from rest_framework import generics, status
-from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from .serializers import LoginSerializer, LogoutSerializer, SocialLoginSerializer
 
@@ -56,10 +56,11 @@ class SocialLoginView(generics.CreateAPIView):
             status=status.HTTP_200_OK,
         )
 
+
 class LogoutView(generics.CreateAPIView):
     serializer_class = LogoutSerializer
     permission_classes = [IsAuthenticated]
-    
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)

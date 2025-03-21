@@ -4,11 +4,11 @@ from allauth.socialaccount.models import SocialAccount, SocialToken
 from allauth.socialaccount.providers.kakao.views import KakaoOAuth2Adapter
 from allauth.socialaccount.providers.naver.views import NaverOAuth2Adapter
 from django.conf import settings
+from django.contrib.auth import authenticate
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import authenticate
 
 from .models import User
 
@@ -31,7 +31,7 @@ class AuthService:
             "refresh_token": str(refresh),
             "expires_in": settings.JWT_EXPIRES_IN,
         }
-        
+
     @staticmethod
     def blacklist_token(token):
         try:
@@ -39,7 +39,7 @@ class AuthService:
             return True, None
         except Exception as e:
             return False, str(e)
-        
+
 
 class SocialLoginService:
     @staticmethod

@@ -71,6 +71,7 @@ class SocialLoginSerializer(serializers.Serializer):
             "expires_in": tokens["expires_in"],
         }
 
+
 class LogoutSerializer(serializers.Serializer):
     refresh_token = serializers.CharField()
 
