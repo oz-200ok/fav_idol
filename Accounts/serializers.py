@@ -290,3 +290,32 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
             UserService.update_password(instance, password)
 
         return instance
+
+class CheckDuplicateSerializer(serializers.Serializer):
+    type = serializers.ChoiceField(
+        choices=['username', 'email', 'phone'],
+        required=True
+    )
+    value = serializers.CharField(required=True)
+
+    def validate(self, attrs):
+        check_type = attrs.get('type')
+        value = attrs.get('value')
+        
+        if not value:
+            raise serializers.ValidationError(f"{check_type} 값은 필수입니다.")
+            
+        if check_type == 'username':
+            is_unique, error = UserService.check_username_uniqueness(value)
+            if not is_unique:
+                raise serializers.ValidationError({"username": error})
+        elif check_type == 'email':
+            is_unique, error = UserService.check_email_uniqueness(value)
+            if not is_unique:
+                raise serializers.ValidationError({"email": error})
+        elif check_type == 'phone':
+            is_unique, error = UserService.check_phone_uniqueness(value)
+            if not is_unique:
+                raise serializers.ValidationError({"phone": error})
+                
+        return {check_type: value}
