@@ -104,24 +104,20 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         # 이메일 중복 검사
-        email = attrs.get("email")
-        if User.objects.filter(email=email).exists():
-            raise serializers.ValidationError({"email": "이미 사용 중인 이메일입니다."})
-
+        is_valid, error = UserService.check_email_uniqueness(attrs.get("email"))
+        if not is_valid:
+            raise serializers.ValidationError({"email": error})
+        
         # 닉네임 중복 검사
-        username = attrs.get("username")
-        if User.objects.filter(username=username).exists():
-            raise serializers.ValidationError(
-                {"username": "이미 사용 중인 닉네임입니다."}
-            )
-
+        is_valid, error = UserService.check_username_uniqueness(attrs.get("username"))
+        if not is_valid:
+            raise serializers.ValidationError({"username": error})
+        
         # 전화번호 중복 검사
-        phone = attrs.get("phone")
-        if phone and User.objects.filter(phone=phone).exists():
-            raise serializers.ValidationError(
-                {"phone": "이미 사용 중인 전화번호입니다."}
-            )
-
+        is_valid, error = UserService.check_phone_uniqueness(attrs.get("phone"))
+        if not is_valid:
+            raise serializers.ValidationError({"phone": error})
+            
         return attrs
 
     def create(self, validated_data):
