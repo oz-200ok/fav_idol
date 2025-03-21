@@ -70,3 +70,15 @@ class SocialLoginSerializer(serializers.Serializer):
             "refresh_token": tokens["refresh_token"],
             "expires_in": tokens["expires_in"],
         }
+
+class LogoutSerializer(serializers.Serializer):
+    refresh_token = serializers.CharField()
+
+    def validate(self, attrs):
+        self.token = attrs["refresh_token"]
+        return attrs
+
+    def save(self, **kwargs):
+        success, error = AuthService.blacklist_token(self.token)
+        if not success:
+            raise serializers.ValidationError(error)

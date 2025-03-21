@@ -8,6 +8,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth import authenticate
 
 from .models import User
 
@@ -15,8 +16,6 @@ from .models import User
 class AuthService:
     @staticmethod
     def authenticate_user(email, password):
-        from django.contrib.auth import authenticate
-
         user = authenticate(email=email, password=password)
         if not user:
             return None, "이메일 또는 비밀번호가 올바르지 않습니다."
@@ -32,7 +31,15 @@ class AuthService:
             "refresh_token": str(refresh),
             "expires_in": settings.JWT_EXPIRES_IN,
         }
-
+        
+    @staticmethod
+    def blacklist_token(token):
+        try:
+            RefreshToken(token).blacklist()
+            return True, None
+        except Exception as e:
+            return False, str(e)
+        
 
 class SocialLoginService:
     @staticmethod
