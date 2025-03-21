@@ -223,3 +223,50 @@ class UserService:
             verified=True, primary=True
         )
         return user
+
+    @staticmethod
+    def check_email_uniqueness(email):
+        if User.objects.filter(email=email).exists():
+            return False, "이미 사용 중인 이메일입니다."
+        return True, None
+
+    @staticmethod
+    def check_username_uniqueness(username, user_id=None):
+        query = User.objects.filter(username=username)
+        if user_id:
+            query = query.exclude(id=user_id)
+        if query.exists():
+            return False, "이미 사용 중인 닉네임입니다."
+        return True, None
+
+    @staticmethod
+    def check_phone_uniqueness(phone, user_id=None):
+        if not phone:
+            return True, None
+        query = User.objects.filter(phone=phone)
+        if user_id:
+            query = query.exclude(id=user_id)
+        if query.exists():
+            return False, "이미 사용 중인 전화번호입니다."
+        return True, None
+
+    @staticmethod
+    def verify_current_password(user, current_password):
+        if not user.check_password(current_password):
+            return False, "현재 비밀번호가 일치하지 않습니다."
+        return True, None
+
+    @staticmethod
+    def update_user_profile(user, username=None, phone=None):
+        if username:
+            user.username = username
+        if phone:
+            user.phone = phone
+        user.save()
+        return user
+
+    @staticmethod
+    def update_password(user, new_password):
+        user.set_password(new_password)
+        user.save()
+        return user
