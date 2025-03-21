@@ -3,6 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .serializers import (
+    CheckDuplicateSerializer,
     FindEmailSerializer,
     FindPasswordSerializer,
     LoginSerializer,
@@ -191,3 +192,14 @@ class UserProfileUpdateView(generics.UpdateAPIView):
             },
             status=status.HTTP_201_CREATED,
         )
+
+
+class CheckDuplicateView(generics.GenericAPIView):
+    serializer_class = CheckDuplicateSerializer
+
+    def get(self, request):
+        serializer = self.get_serializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+
+        # 중복이 없으면 여기까지 실행됨 (중복 있으면 ValidationError 발생)
+        return Response({"data": serializer.validated_data}, status=status.HTTP_200_OK)

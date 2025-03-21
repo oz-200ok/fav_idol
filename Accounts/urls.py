@@ -1,6 +1,7 @@
 from django.urls import path
 
 from .views import (
+    CheckDuplicateView,
     FindEmailView,
     FindPasswordView,
     LoginView,
@@ -24,4 +25,5 @@ urlpatterns = [
     path("reset-password/", ResetPasswordView.as_view(), name="reset_password"),
     path("me/", UserProfileView.as_view(), name="user_profile"),
     path("profile/", UserProfileUpdateView.as_view(), name="user-profile-update"),
+    path("check-duplicate/", CheckDuplicateView.as_view(), name="check-duplicate"),
 ]
