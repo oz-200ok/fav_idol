@@ -14,10 +14,7 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
-import pymysql
 from dotenv import load_dotenv
-
-pymysql.install_as_MySQLdb()
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -101,15 +98,14 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.mysql",
+        "ENGINE": "django.db.backends.postgresql",
         "NAME": os.getenv("MYSQL_DATABASE"),
         "USER": os.getenv("MYSQL_USER"),
         "PASSWORD": os.getenv("MYSQL_PASSWORD"),
         "HOST": os.getenv("MYSQL_HOST"),
         "PORT": os.getenv("MYSQL_PORT"),
-        "OPTIONS": {
-            "charset": "utf8mb4",
-            "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+        'OPTIONS': {
+            'sslmode': 'disable',  # SSL을 비활성화
         },
     }
 }
