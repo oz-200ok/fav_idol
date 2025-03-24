@@ -153,14 +153,14 @@ class ResetPasswordView(generics.CreateAPIView):
 class UserProfileView(generics.RetrieveAPIView):
     serializer_class = UserProfileSerializer
     permission_classes = [IsAuthenticated]
-
+    
     def get_object(self):
         return self.request.user
-
+    
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
-        return Response({"data": serializer.data}, status=status.HTTP_200_OK)
+        return custom_response(serializer.data)
 
 
 class UserProfileUpdateView(generics.UpdateAPIView):
