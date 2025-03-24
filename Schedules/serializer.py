@@ -7,7 +7,7 @@ from .models import Schedule
 
 
 class ScheduleSerializer(serializers.ModelSerializer):
-    participating_members = serializers.PrimaryKeyRelatedField(many=True, queryset=Idol.objects.all())
+    participating_members = IdolSerializer(many=True, read_only=True)
     group = serializers.PrimaryKeyRelatedField(queryset=Group.objects.all())
 
     class Meta:
@@ -18,4 +18,3 @@ class ScheduleSerializer(serializers.ModelSerializer):
         if data ['end_time'] <= data['start_time']:
             raise serializers.ValidationError("end_time은 start_time 이후여야 합니다.")
         return data
-
