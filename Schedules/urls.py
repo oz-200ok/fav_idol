@@ -9,4 +9,3 @@ urlpatterns = [
         "group/<int:group_id>/", GroupScheduleListView.as_view(), name="group_schedule"
     ),
 ]
-

@@ -1,6 +1,9 @@
 from rest_framework import serializers
+
 from Idols.models import Group, Idol
+
 from .models import Schedule
+
 
 class ScheduleSerializer(serializers.ModelSerializer):
     # 참여 멤버를 이름 반환
@@ -13,8 +16,14 @@ class ScheduleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Schedule
         fields = [
-            "group", "title", "description", "location",
-            "start_time", "end_time", "participating_members", "participating_member_ids"
+            "group",
+            "title",
+            "description",
+            "location",
+            "start_time",
+            "end_time",
+            "participating_members",
+            "participating_member_ids",
         ]
 
     def create(self, validated_data):
@@ -26,7 +35,9 @@ class ScheduleSerializer(serializers.ModelSerializer):
         participating_members = validated_data.pop("participating_member_ids", [])
         validated_data["user"] = request.user  # 사용자 설정
         schedule = Schedule.objects.create(**validated_data)
-        schedule.participating_members.set(participating_members)  # ManyToMany 관계 설정
+        schedule.participating_members.set(
+            participating_members
+        )  # ManyToMany 관계 설정
         return schedule
 
     def get_participating_members(self, obj):
