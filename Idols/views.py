@@ -1,6 +1,6 @@
 from django.db.models import Count
-from django.shortcuts import get_object_or_404
 from rest_framework import status
+from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
@@ -44,27 +44,21 @@ class GroupDetailView(RetrieveUpdateDestroyAPIView):
 
 
 # 아이돌 리스트
-class IdolListView(APIView):
+class IdolListView(ListCreateAPIView):
+    queryset = Idol.objects.select_related("group")
+    serializer_class = IdolSerializer
     permission_classes = [IsAdminOrReadOnly]
 
-    def get(self, request):
-        idols = Idol.objects.select_related("group").all()
-        serializer = IdolSerializer(idols, many=True)
-        return Response({"data": serializer.data}, status=status.HTTP_200_OK)
-
-    # 아이돌 리스트 동일 적용
-    def post(self, request):
-        serializer = IdolSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"data": serializer.data}, status=status.HTTP_201_CREATED)
-        return Response(
-            {"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-        )
+class IdolDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = Idol.objects.select_related("group")
+    serializer_class = IdolSerializer
+    permission_classes = [IsAdminOrReadOnly]
 
     def delete(self, request, pk):
+        # 해당 ID의 객체를 가져오고, 없으면 404 반환
         idol = get_object_or_404(Idol, pk=pk)
 
+        # 삭제된 데이터를 반환할 정보 구성
         deleted_data = {
             "id": idol.id,
             "name": idol.name,
@@ -73,4 +67,9 @@ class IdolListView(APIView):
 
         # 객체 삭제
         idol.delete()
-        return Response({"data": deleted_data}, status=status.HTTP_200_OK)
+
+        # 응답 반환
+        return Response(
+            {"message": "삭제 완료", "data": deleted_data},
+            status=status.HTTP_200_OK,
+        )

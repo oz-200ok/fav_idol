@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import AgencyListView, GroupListView, IdolListView, AgencyDetailView, GroupDetailView
+from .views import AgencyListView, GroupListView, IdolListView, AgencyDetailView, GroupDetailView, IdolDetailView
 
 urlpatterns = [
     # 에이전시 리스트
@@ -10,10 +10,10 @@ urlpatterns = [
     path("groups/", GroupListView.as_view(), name="group_list"),
     path(
         "groups/<int:pk>/", GroupDetailView.as_view(), name="group_detail"
-    ),  # 디테일 pk
+    ),  # 그룹 디테일
     # 아이돌 리스트
     path("idols/", IdolListView.as_view(), name="idol_list"),
     path(
-        "idols/<int:pk>/", IdolListView.as_view(), name="idol_detail"
-    ),  # 삭제 요청을 위한 pk 추가
+        "idols/<int:pk>/", IdolDetailView.as_view(), name="idol_detail"
+    ),  # 디테일 확인
 ]
