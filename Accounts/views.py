@@ -205,9 +205,10 @@ class UserDeleteView(generics.DestroyAPIView):
     def get_object(self):
         return self.request.user
 
+    def perform_destroy(self, instance):
+        UserService.delete_user_account(instance)
+
     def destroy(self, request, *args, **kwargs):
-        user = self.get_object()
-
-        UserService.delete_user_account(user)
-
-        return Response(status=status.HTTP_200_OK)
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return custom_response(status_code=status.HTTP_204_NO_CONTENT)
