@@ -77,24 +77,22 @@ class RegisterView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         user = serializer.save()
-        token = EmailService.send_verification_email(user)
+        EmailService.send_verification_email(user)
+        return user
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        user = serializer.instance
-
-        return Response(
+        user = self.perform_create(serializer)
+        
+        return custom_response(
             {
-                "data": {
-                    "user_id": user.id,
-                    "email": user.email,
-                    "is_verified": user.is_active,
-                    "resend_available_in": 600,  # 10분 후 재발송 가능
-                }
+                "user_id": user.id,
+                "email": user.email,
+                "is_verified": user.is_active,
+                "resend_available_in": 600,  # 10분 후 재발송 가능
             },
-            status=status.HTTP_201_CREATED,
+            status_code=status.HTTP_201_CREATED
         )
 
 
