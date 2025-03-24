@@ -17,6 +17,8 @@ from .serializers import (
 )
 from .services import EmailService, UserService
 
+def custom_response(data=None, status_code=status.HTTP_200_OK):
+    return Response({"data": data}, status=status_code)
 
 class LoginView(generics.CreateAPIView):
     serializer_class = LoginSerializer
