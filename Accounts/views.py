@@ -18,55 +18,49 @@ from .serializers import (
 from .services import EmailService, UserService
 
 
+def custom_response(data=None, status_code=status.HTTP_200_OK):
+    if data is None:
+        return Response(status=status_code)
+    return Response({"data": data}, status=status_code)
+
+
 class LoginView(generics.CreateAPIView):
     serializer_class = LoginSerializer
+
+    def perform_create(self, serializer):
+        return serializer.validated_data
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data["user"]
-        access_token = serializer.validated_data["access_token"]
-        refresh_token = serializer.validated_data["refresh_token"]
-        expires_in = serializer.validated_data["expires_in"]
-
-        return Response(
+        data = self.perform_create(serializer)
+        return custom_response(
             {
-                "data": {
-                    "access_token": access_token,
-                    "refresh_token": refresh_token,
-                    "expires_in": expires_in,
-                    "user": {"id": user.id, "email": user.email},
-                }
-            },
-            status=status.HTTP_200_OK,
+                "access_token": data["access_token"],
+                "refresh_token": data["refresh_token"],
+                "expires_in": data["expires_in"],
+                "user": {"id": data["user"].id, "email": data["user"].email},
+            }
         )
 
 
 class SocialLoginView(generics.CreateAPIView):
     serializer_class = SocialLoginSerializer
 
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        return context
+    def perform_create(self, serializer):
+        return serializer.validated_data
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data["user"]
-        access_token = serializer.validated_data["access_token"]
-        refresh_token = serializer.validated_data["refresh_token"]
-        expires_in = serializer.validated_data["expires_in"]
-
-        return Response(
+        data = self.perform_create(serializer)
+        return custom_response(
             {
-                "data": {
-                    "access_token": access_token,
-                    "refresh_token": refresh_token,
-                    "expires_in": expires_in,
-                    "user": {"id": user.id, "email": user.email},
-                }
-            },
-            status=status.HTTP_200_OK,
+                "access_token": data["access_token"],
+                "refresh_token": data["refresh_token"],
+                "expires_in": data["expires_in"],
+                "user": {"id": data["user"].id, "email": data["user"].email},
+            }
         )
 
 
@@ -74,11 +68,14 @@ class LogoutView(generics.CreateAPIView):
     serializer_class = LogoutSerializer
     permission_classes = [IsAuthenticated]
 
+    def perform_create(self, serializer):
+        serializer.save()
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(status=status.HTTP_200_OK)
+        self.perform_create(serializer)
+        return custom_response(status_code=status.HTTP_200_OK)
 
 
 class RegisterView(generics.CreateAPIView):
@@ -86,24 +83,22 @@ class RegisterView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         user = serializer.save()
-        token = EmailService.send_verification_email(user)
+        EmailService.send_verification_email(user)
+        return user
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        user = serializer.instance
+        user = self.perform_create(serializer)
 
-        return Response(
+        return custom_response(
             {
-                "data": {
-                    "user_id": user.id,
-                    "email": user.email,
-                    "is_verified": user.is_active,
-                    "resend_available_in": 600,  # 10분 후 재발송 가능
-                }
+                "user_id": user.id,
+                "email": user.email,
+                "is_verified": user.is_active,
+                "resend_available_in": 600,  # 10분 후 재발송 가능
             },
-            status=status.HTTP_201_CREATED,
+            status_code=status.HTTP_201_CREATED,
         )
 
 
@@ -116,44 +111,46 @@ class VerifyEmailView(generics.RetrieveAPIView):
     def retrieve(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
-        return Response(
-            {
-                "data": {
-                    **serializer.validated_data["data"],
-                }
-            },
-            status=status.HTTP_200_OK,
-        )
+        return custom_response(serializer.validated_data["data"])
 
 
 class FindEmailView(generics.CreateAPIView):
     serializer_class = FindEmailSerializer
 
+    def perform_create(self, serializer):
+        return serializer.validated_data
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        return Response(
-            {"data": {"email": serializer.validated_data["email"]}},
-            status=status.HTTP_200_OK,
-        )
+        data = self.perform_create(serializer)
+        return custom_response({"email": data["email"]})
 
 
 class FindPasswordView(generics.CreateAPIView):
     serializer_class = FindPasswordSerializer
 
+    def perform_create(self, serializer):
+        return serializer.validated_data
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        return Response(status=status.HTTP_200_OK)
+        self.perform_create(serializer)
+        return custom_response()
 
 
 class ResetPasswordView(generics.CreateAPIView):
     serializer_class = ResetPasswordSerializer
 
+    def perform_create(self, serializer):
+        return serializer.validated_data
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        return Response(status=status.HTTP_201_CREATED)
+        self.perform_create(serializer)
+        return custom_response(status_code=status.HTTP_201_CREATED)
 
 
 class UserProfileView(generics.RetrieveAPIView):
@@ -166,7 +163,7 @@ class UserProfileView(generics.RetrieveAPIView):
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
-        return Response({"data": serializer.data}, status=status.HTTP_200_OK)
+        return custom_response(serializer.data)
 
 
 class UserProfileUpdateView(generics.UpdateAPIView):
@@ -176,6 +173,9 @@ class UserProfileUpdateView(generics.UpdateAPIView):
     def get_object(self):
         return self.request.user
 
+    def perform_update(self, serializer):
+        return serializer.save()
+
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
         instance = self.get_object()
@@ -183,26 +183,23 @@ class UserProfileUpdateView(generics.UpdateAPIView):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 
-        return Response(
+        return custom_response(
             {
-                "data": {
-                    "username": instance.username,
-                    "phone": instance.phone,
-                }
+                "username": instance.username,
+                "phone": instance.phone,
             },
-            status=status.HTTP_201_CREATED,
+            status_code=status.HTTP_201_CREATED,
         )
 
 
 class CheckDuplicateView(generics.GenericAPIView):
     serializer_class = CheckDuplicateSerializer
 
-    def get(self, request):
+    def get(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
 
-        # 중복이 없으면 여기까지 실행됨 (중복 있으면 ValidationError 발생)
-        return Response({"data": serializer.validated_data}, status=status.HTTP_200_OK)
+        return custom_response(serializer.validated_data)
 
 
 class UserDeleteView(generics.DestroyAPIView):
@@ -211,9 +208,10 @@ class UserDeleteView(generics.DestroyAPIView):
     def get_object(self):
         return self.request.user
 
+    def perform_destroy(self, instance):
+        UserService.delete_user_account(instance)
+
     def destroy(self, request, *args, **kwargs):
-        user = self.get_object()
-
-        UserService.delete_user_account(user)
-
-        return Response(status=status.HTTP_200_OK)
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return custom_response(status_code=status.HTTP_204_NO_CONTENT)
