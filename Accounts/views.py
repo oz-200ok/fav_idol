@@ -111,13 +111,14 @@ class VerifyEmailView(generics.RetrieveAPIView):
 class FindEmailView(generics.CreateAPIView):
     serializer_class = FindEmailSerializer
 
+    def perform_create(self, serializer):
+        return serializer.validated_data
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        return Response(
-            {"data": {"email": serializer.validated_data["email"]}},
-            status=status.HTTP_200_OK,
-        )
+        data = self.perform_create(serializer)
+        return custom_response({"email": data["email"]})
 
 
 class FindPasswordView(generics.CreateAPIView):
