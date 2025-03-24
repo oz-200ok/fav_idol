@@ -4,10 +4,9 @@ from .views import *
 
 urlpatterns = [
     path("", ScheduleListView.as_view(), name="schedule"),
-    path("create/", ScheduleCreateView.as_view(), name="schedule_create"),
     path("<int:pk>/", ScheduleDetailView.as_view(), name="schedule_detail"),
-    path("<int:pk>/update/", ScheduleUpdateView.as_view(), name="schedule_update"),
     path(
         "group/<int:group_id>/", GroupScheduleListView.as_view(), name="group_schedule"
     ),
 ]
+
