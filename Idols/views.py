@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework.views import APIView
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 
 from .models import Agency, Group, Idol
 from config.permissions import IsAdminOrReadOnly, IsSuperUser
@@ -11,64 +11,36 @@ from .serializers import AgencySerializer, GroupSerializer, IdolSerializer
 
 
 # 에이전시 리스트
-class AgencyListView(APIView):
+class AgencyListView(ListCreateAPIView):
+
+    queryset = Agency.objects.all()
+    serializer_class = AgencySerializer
+    permission_classes = [IsAdminOrReadOnly]
+
     def get_permissions(self):
         if self.request.method == "GET":
-            return [AllowAny()]  # 읽기는 모든 유저 허용
-        return [IsSuperUser()]  # Post/Delete는 슈퍼유저만 허용
+            return [AllowAny()]  # 읽기 요청은 모든 사용자 허용
+        return super().get_permissions()  # 기본 권한(관리자 쓰기)
 
-    def get(self, request):
-        agencies = Agency.objects.all()
-        serializer = AgencySerializer(agencies, many=True)
-        return Response({"data": serializer.data}, status=status.HTTP_200_OK)
 
+class AgencyDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = Agency.objects.all()
+    serializer_class = AgencySerializer
     permission_classes = [IsSuperUser]
-
-    def post(self, request):
-        serializer = AgencySerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()  # 검증된 데이터를 저장
-            return Response({"data": serializer.data}, status=status.HTTP_201_CREATED)
-        return Response(
-            {"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-        )
-
-    def delete(self, request, pk):
-        agency = get_object_or_404(Agency, pk=pk)
-        deleted_data = {"id": agency.id, "name": agency.name}
-        agency.delete()
-        return Response({"data": deleted_data}, status=status.HTTP_200_OK)
 
 
 # 그룹 리스트
-class GroupListView(APIView):
+class GroupListView(ListCreateAPIView):
+    queryset = Group.objects.select_related("agency").annotate(
+        member_count=Count("idol")
+    )
+    serializer_class = GroupSerializer
     permission_classes = [IsAdminOrReadOnly]
 
-    def get(self, request):
-        groups = Group.objects.select_related("agency").annotate(
-            member_count=Count("idol")
-        )
-        serializer = GroupSerializer(groups, many=True)
-        return Response({"data": serializer.data}, status=status.HTTP_200_OK)
-
-    def post(self, request):
-        serializer = GroupSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"data": serializer.data}, status=status.HTTP_201_CREATED)
-        return Response(
-            {"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-        )
-
-    def delete(self, request, pk):
-        group = get_object_or_404(Group, pk=pk)
-        deleted_data = {
-            "id": group.id,
-            "agency_name": group.agency.name,
-            "name": group.name,
-        }
-        group.delete()
-        return Response({"data": deleted_data}, status=status.HTTP_200_OK)
+class GroupDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = Group.objects.select_related("agency")
+    serializer_class = GroupSerializer
+    permission_classes = [IsSuperUser]
 
 
 # 아이돌 리스트
