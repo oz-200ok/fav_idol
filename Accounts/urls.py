@@ -1,6 +1,7 @@
 from django.urls import path
 
 from .views import (
+    CheckDuplicateView,
     FindEmailView,
     FindPasswordView,
     LoginView,
@@ -8,6 +9,9 @@ from .views import (
     RegisterView,
     ResetPasswordView,
     SocialLoginView,
+    UserDeleteView,
+    UserProfileUpdateView,
+    UserProfileView,
     VerifyEmailView,
 )
 
@@ -20,4 +24,8 @@ urlpatterns = [
     path("find-email/", FindEmailView.as_view(), name="find_email"),
     path("find-password/", FindPasswordView.as_view(), name="find_password"),
     path("reset-password/", ResetPasswordView.as_view(), name="reset_password"),
+    path("me/", UserProfileView.as_view(), name="user_profile"),
+    path("profile/", UserProfileUpdateView.as_view(), name="user-profile-update"),
+    path("check-duplicate/", CheckDuplicateView.as_view(), name="check-duplicate"),
+    path("delete/", UserDeleteView.as_view(), name="account-delete"),
 ]
