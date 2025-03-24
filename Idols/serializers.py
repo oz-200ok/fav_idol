@@ -1,22 +1,64 @@
-from rest_framework.permissions import BasePermission, SAFE_METHODS
+from rest_framework import serializers
+
+from .models import Agency, Group, Idol
 
 
-class IsAdminOrReadOnly(BasePermission):
-    """
-    관리자 등급은 쓰기 권한, 일반 유저는 읽기 권한만 부여
-    """
+# Agency Serializer
+class AgencySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Agency
+        fields = ["name", "contact"]  # 필요한 필드 정의
 
-    def has_permission(self, request, view):
-        if request.method in SAFE_METHODS:
-            return True  # 모두 읽기 허용
-        return request.user and request.user.is_staff
+    # 이름 중복 검증
+    def validate_name(self, value):
+        if Agency.objects.filter(name=value).exists():
+            raise serializers.ValidationError("같은 이름의 소속사가 존재합니다.")
+        return value
 
 
-class IsSuperUser(BasePermission):
-    """
-    요청한 사용자가 슈퍼유저인지 확인
-    """
+# Group Serializer
+class GroupSerializer(serializers.ModelSerializer):
+    agency_name = serializers.CharField(
+        source="agency.name", read_only=True
+    )  # 관련 소속사 이름 추가 (읽기 전용)
+    member_count = serializers.IntegerField(read_only=True)  # 그룹 멤버 수 추가
 
-    def has_permission(self, request, view):
-        return request.user and request.user.is_superuser
+    class Meta:
+        model = Group
+        fields = [
+            "agency_name",
+            "id",
+            "name",
+            "sns",
+            "color",
+            "image",
+            "member_count",
+        ]  # 사용 필드 정의
 
+    # 이름 중복 검증
+    def validate_name(self, value):
+        if Group.objects.filter(name=value).exists():
+            raise serializers.ValidationError("같은 이름의 그룹이 존재합니다.")
+        return value
+
+
+# Idol Serializer
+class IdolSerializer(serializers.ModelSerializer):
+    group_name = serializers.CharField(
+        source="group.name", read_only=True
+    )  # 관련 그룹 이름 추가 (읽기 전용)
+
+    class Meta:
+        model = Idol
+        fields = ["name", "group", "group_name"]  # 사용 필드 정의
+
+    # 같은 그룹 내에 들어가는 아이돌 이름이 중복될 경우를 검증
+    def validate(self, data):
+        name = data.get("name")
+        group = data.get("group")
+
+        if Idol.objects.filter(name=name, group=group).exists():
+            raise serializers.ValidationError(
+                "같은 그룹에 동일한 이름의 아이돌이 존재합니다."
+            )
+        return data

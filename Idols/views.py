@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import Agency, Group, Idol
-from .permissions import IsAdminOrReadOnly, IsSuperUser
+from config.permissions import IsAdminOrReadOnly, IsSuperUser
 from .serializers import AgencySerializer, GroupSerializer, IdolSerializer
 
 

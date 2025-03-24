@@ -6,7 +6,7 @@ from rest_framework.generics import (
 from rest_framework.response import Response
 
 from .models import Schedule
-from .permissions import IsAdminOrReadOnly
+from config.permissions import IsAdminOrReadOnly
 from .serializer import ScheduleSerializer
 
 
