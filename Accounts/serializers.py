@@ -1,19 +1,8 @@
-import requests
-from allauth.account.models import EmailAddress
-from allauth.socialaccount.models import SocialAccount, SocialToken
-from allauth.socialaccount.providers.kakao.views import KakaoOAuth2Adapter
-from allauth.socialaccount.providers.naver.views import NaverOAuth2Adapter
-from allauth.socialaccount.providers.oauth2.client import OAuth2Error
-from django.conf import settings
-from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
-from django.contrib.auth.tokens import default_token_generator
-from django.core.mail import send_mail
-from django.template.loader import render_to_string
 from rest_framework import serializers
-from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import User
+from .services import AuthService, EmailService, SocialLoginService, UserService
 
 
 class LoginSerializer(serializers.Serializer):
@@ -24,69 +13,20 @@ class LoginSerializer(serializers.Serializer):
         email = data.get("email", "")
         password = data.get("password", "")
 
-        if email and password:
-            user = authenticate(email=email, password=password)
-
-            if not user:
-                raise serializers.ValidationError(
-                    "이메일 또는 비밀번호가 올바르지 않습니다."
-                )
-
-            if not user.is_active:
-                raise serializers.ValidationError("이메일 인증이 필요합니다.")
-
-            refresh = RefreshToken.for_user(user)
-
-            return {
-                "user": user,
-                "access_token": str(refresh.access_token),
-                "refresh_token": str(refresh),
-                "expires_in": settings.JWT_EXPIRES_IN,  # settings 파일에서 가져오기
-            }
-        else:
+        if not email or not password:
             raise serializers.ValidationError("이메일과 비밀번호를 모두 입력해주세요.")
 
+        user, error = AuthService.authenticate_user(email, password)
+        if error:
+            raise serializers.ValidationError(error)
 
-def get_or_create_social_user(social_type, social_info):
-    email = social_info.user.email
-    try:
-        social_account = SocialAccount.objects.get(
-            provider=social_type, uid=social_info.account.uid
-        )
-        user = social_account.user
-    except SocialAccount.DoesNotExist:
-        try:
-            user = User.objects.get(email=email)
-            SocialAccount.objects.create(
-                user=user,
-                provider=social_type,
-                uid=social_info.account.uid,
-                extra_data=social_info.account.extra_data,
-            )
-            user.is_social = True
-            user.social_login = social_type
-            user.save()
-        except User.DoesNotExist:
-            username = f"{social_type}_{email.split('@')[0]}"
-            name = email.split("@")[0]
-            user = User.objects.create_user(
-                email=email,
-                username=username,
-                name=name,
-                is_active=True,
-                is_social=True,
-                social_login=social_type,
-            )
-            SocialAccount.objects.create(
-                user=user,
-                provider=social_type,
-                uid=social_info.account.uid,
-                extra_data=social_info.account.extra_data,
-            )
-    EmailAddress.objects.get_or_create(
-        user=user, email=email, verified=True, primary=True
-    )
-    return user
+        tokens = AuthService.generate_tokens(user)
+        return {
+            "user": user,
+            "access_token": tokens["access_token"],
+            "refresh_token": tokens["refresh_token"],
+            "expires_in": tokens["expires_in"],
+        }
 
 
 class SocialLoginSerializer(serializers.Serializer):
@@ -103,77 +43,34 @@ class SocialLoginSerializer(serializers.Serializer):
         if social_type not in ["naver", "kakao"]:
             raise serializers.ValidationError("지원하지 않는 소셜 로그인 타입입니다.")
 
-        # 소셜 로그인 타입에 따라 어댑터 선택
-        if social_type == "naver":
-            adapter_class = NaverOAuth2Adapter
-            callback_url = settings.NAVER_CALLBACK_URL
-            client_id = settings.NAVER_CLIENT_ID
-            client_secret = settings.NAVER_CLIENT_SECRET
-        elif social_type == "kakao":
-            adapter_class = KakaoOAuth2Adapter
-            callback_url = settings.KAKAO_CALLBACK_URL
-            client_id = settings.KAKAO_CLIENT_ID
-            client_secret = settings.KAKAO_CLIENT_SECRET
+        # 어댑터 설정 가져오기
+        adapter_config = SocialLoginService.get_adapter_config(social_type)
+        if not adapter_config:
+            raise serializers.ValidationError("지원하지 않는 소셜 로그인 타입입니다.")
 
-        # 인가 코드로 액세스 토큰 요청
-        token_url = adapter_class.access_token_url
-        token_params = {
-            "grant_type": "authorization_code",
-            "client_id": client_id,
-            "client_secret": client_secret,
-            "code": code,
-            "redirect_uri": callback_url,
-        }
+        # 액세스 토큰 요청
+        access_token, error = SocialLoginService.get_access_token(adapter_config, code)
+        if error:
+            raise serializers.ValidationError(error)
 
-        try:
-            token_response = requests.post(token_url, data=token_params)
-            token_response.raise_for_status()
-            print(f"토큰 응답: {token_response.text}")
-        except requests.RequestException as e:
-            error_detail = str(e)
-            if hasattr(e, "response") and e.response:
-                error_detail += f" 응답: {e.response.text}"
-            raise serializers.ValidationError(
-                f"액세스 토큰을 얻는 데 실패했습니다: {error_detail}"
-            )
-
-        token_data = token_response.json()
-
-        if "access_token" not in token_data:
-            raise serializers.ValidationError("액세스 토큰을 얻는데 실패했습니다.")
-
-        access_token = token_data["access_token"]
-        token = SocialToken(token=access_token)
-
-        # 액세스 토큰으로 사용자 정보 요청
-        adapter = adapter_class(self.context["request"])
-        try:
-            social_info = adapter.complete_login(
-                self.context["request"], None, token=token
-            )
-        except OAuth2Error as e:
-            raise serializers.ValidationError(
-                f"사용자 정보를 가져오는 데 실패했습니다: {e}"
-            )
-        except Exception as e:
-            raise serializers.ValidationError(
-                f"사용자 정보를 가져오는 데 실패했습니다: {e}"
-            )
+        # 사용자 정보 요청
+        social_info, error = SocialLoginService.get_user_info(
+            adapter_config["adapter_class"], self.context["request"], access_token
+        )
+        if error:
+            raise serializers.ValidationError(error)
 
         # 소셜 계정으로 사용자 찾기 또는 생성
-        extra_data = social_info.account.extra_data
-        uid = extra_data["id"]
-        social_info.uid = uid
-        user = get_or_create_social_user(social_type, social_info)
+        social_info.account.uid = social_info.account.extra_data["id"]
+        user = SocialLoginService.get_or_create_social_user(social_type, social_info)
 
         # JWT 토큰 생성
-        refresh = RefreshToken.for_user(user)
-
+        tokens = AuthService.generate_tokens(user)
         return {
             "user": user,
-            "access_token": str(refresh.access_token),
-            "refresh_token": str(refresh),
-            "expires_in": settings.JWT_EXPIRES_IN,  # settings 파일에서 가져오기
+            "access_token": tokens["access_token"],
+            "refresh_token": tokens["refresh_token"],
+            "expires_in": tokens["expires_in"],
         }
 
 
@@ -185,10 +82,9 @@ class LogoutSerializer(serializers.Serializer):
         return attrs
 
     def save(self, **kwargs):
-        try:
-            RefreshToken(self.token).blacklist()
-        except Exception as e:
-            raise serializers.ValidationError(str(e))
+        success, error = AuthService.blacklist_token(self.token)
+        if not success:
+            raise serializers.ValidationError(error)
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -208,23 +104,19 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         # 이메일 중복 검사
-        email = attrs.get("email")
-        if User.objects.filter(email=email).exists():
-            raise serializers.ValidationError({"email": "이미 사용 중인 이메일입니다."})
+        is_valid, error = UserService.check_email_uniqueness(attrs.get("email"))
+        if not is_valid:
+            raise serializers.ValidationError({"email": error})
 
         # 닉네임 중복 검사
-        username = attrs.get("username")
-        if User.objects.filter(username=username).exists():
-            raise serializers.ValidationError(
-                {"username": "이미 사용 중인 닉네임입니다."}
-            )
+        is_valid, error = UserService.check_username_uniqueness(attrs.get("username"))
+        if not is_valid:
+            raise serializers.ValidationError({"username": error})
 
         # 전화번호 중복 검사
-        phone = attrs.get("phone")
-        if phone and User.objects.filter(phone=phone).exists():
-            raise serializers.ValidationError(
-                {"phone": "이미 사용 중인 전화번호입니다."}
-            )
+        is_valid, error = UserService.check_phone_uniqueness(attrs.get("phone"))
+        if not is_valid:
+            raise serializers.ValidationError({"phone": error})
 
         return attrs
 
@@ -251,37 +143,27 @@ class VerifyEmailSerializer(serializers.Serializer):
         if not token or not email:
             raise serializers.ValidationError("토큰과 이메일은 필수 파라미터입니다.")
 
-        try:
-            user = User.objects.get(email=email)
+        user, error = UserService.find_user_by_email(email)
+        if error:
+            raise serializers.ValidationError(error)
 
-            # 토큰 검증
-            if default_token_generator.check_token(user, token):
-                # 사용자 활성화
-                user.is_active = True
-                user.save()
+        # 토큰 검증
+        if EmailService.verify_token(user, token):
+            # 사용자 활성화
+            user = UserService.activate_user(user)
 
-                # 이메일 인증 상태 업데이트
-                EmailAddress.objects.filter(user=user, email=email).update(
-                    verified=True, primary=True
-                )
-
-                return {
-                    "user": user,
-                    "message": "회원가입이 완료되었습니다",
-                    "data": {
-                        "id": user.id,
-                        "name": user.name,
-                        "email": user.email,
-                        "phone": user.phone,
-                    },
-                }
-            else:
-                raise serializers.ValidationError("유효하지 않은 인증 토큰입니다.")
-
-        except User.DoesNotExist:
-            raise serializers.ValidationError(
-                "해당 이메일로 가입된 사용자를 찾을 수 없습니다."
-            )
+            return {
+                "user": user,
+                "message": "회원가입이 완료되었습니다",
+                "data": {
+                    "id": user.id,
+                    "name": user.name,
+                    "email": user.email,
+                    "phone": user.phone,
+                },
+            }
+        else:
+            raise serializers.ValidationError("유효하지 않은 인증 토큰입니다.")
 
 
 class FindEmailSerializer(serializers.Serializer):
@@ -295,16 +177,14 @@ class FindEmailSerializer(serializers.Serializer):
         if not name or not phone:
             raise serializers.ValidationError("이름과 전화번호는 필수 입력 항목입니다.")
 
-        try:
-            user = User.objects.get(name=name, phone=phone)
-            return {
-                "email": user.email,
-                "message": "회원님의 정보와 일치하는 이메일을 찾았습니다.",
-            }
-        except User.DoesNotExist:
-            raise serializers.ValidationError(
-                "입력하신 정보와 일치하는 회원이 없습니다."
-            )
+        user, error = UserService.find_user_by_name_and_phone(name, phone)
+        if error:
+            raise serializers.ValidationError(error)
+
+        return {
+            "email": user.email,
+            "message": "회원님의 정보와 일치하는 이메일을 찾았습니다.",
+        }
 
 
 class FindPasswordSerializer(serializers.Serializer):
@@ -312,37 +192,13 @@ class FindPasswordSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         email = attrs.get("email")
+        user, error = UserService.find_user_by_email(email)
+        if error:
+            raise serializers.ValidationError(error)
 
-        try:
-            user = User.objects.get(email=email)
-
-            # 비밀번호 재설정 토큰 생성
-            token = default_token_generator.make_token(user)
-
-            # 비밀번호 재설정 이메일 발송
-            reset_url = (
-                f"{settings.FRONTEND_URL}/reset-password?token={token}&email={email}"
-            )
-            subject = "I-LOG 비밀번호 재설정 안내"
-            message = render_to_string(
-                "password_reset_email.html", {"user": user, "reset_url": reset_url}
-            )
-
-            send_mail(
-                subject,
-                message,
-                settings.DEFAULT_FROM_EMAIL,
-                [email],
-                fail_silently=False,
-                html_message=message,
-            )
-
-            return attrs
-
-        except User.DoesNotExist:
-            raise serializers.ValidationError(
-                "입력하신 이메일로 등록된 계정이 없습니다."
-            )
+        # 비밀번호 재설정 이메일 발송
+        EmailService.send_password_reset_email(user)
+        return attrs
 
 
 class ResetPasswordSerializer(serializers.Serializer):
@@ -355,19 +211,111 @@ class ResetPasswordSerializer(serializers.Serializer):
         email = attrs.get("email")
         new_password = attrs.get("new_password")
 
-        try:
-            user = User.objects.get(email=email)
+        user, error = UserService.find_user_by_email(email)
+        if error:
+            raise serializers.ValidationError(error)
 
-            # 토큰 검증
-            if default_token_generator.check_token(user, token):
-                # 비밀번호 변경
-                user.set_password(new_password)
-                user.save()
-                return attrs
-            else:
-                raise serializers.ValidationError("유효하지 않은 토큰입니다.")
+        # 토큰 검증
+        if EmailService.verify_token(user, token):
+            # 비밀번호 변경
+            UserService.reset_password(user, new_password)
+            return attrs
+        else:
+            raise serializers.ValidationError("유효하지 않은 토큰입니다.")
 
-        except User.DoesNotExist:
-            raise serializers.ValidationError(
-                "입력하신 이메일로 등록된 계정이 없습니다."
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ("id", "email", "username", "name", "phone")
+        read_only_fields = ("id", "email", "username", "name", "phone")
+
+
+class UserProfileUpdateSerializer(serializers.ModelSerializer):
+    current_password = serializers.CharField(write_only=True, required=False)
+    password = serializers.CharField(write_only=True, required=False)
+
+    class Meta:
+        model = User
+        fields = ("username", "phone", "password", "current_password")
+
+    def validate(self, attrs):
+        # 비밀번호 변경 요청이 있는 경우
+        if "password" in attrs:
+            if not attrs.get("current_password"):
+                raise serializers.ValidationError(
+                    {"current_password": "현재 비밀번호를 입력해주세요."}
+                )
+
+            # 현재 비밀번호 확인
+            user = self.instance
+            is_valid, error = UserService.verify_current_password(
+                user, attrs.get("current_password")
             )
+            if not is_valid:
+                raise serializers.ValidationError({"current_password": error})
+
+        # 닉네임 중복 검사
+        if "username" in attrs:
+            is_valid, error = UserService.check_username_uniqueness(
+                attrs.get("username"), self.instance.id
+            )
+            if not is_valid:
+                raise serializers.ValidationError({"username": error})
+
+        # 전화번호 중복 검사
+        if "phone" in attrs:
+            is_valid, error = UserService.check_phone_uniqueness(
+                attrs.get("phone"), self.instance.id
+            )
+            if not is_valid:
+                raise serializers.ValidationError({"phone": error})
+
+        return attrs
+
+    def update(self, instance, validated_data):
+        # 비밀번호 필드 제거
+        current_password = validated_data.pop("current_password", None)
+        password = validated_data.pop("password", None)
+
+        # 프로필 정보 업데이트
+        instance = UserService.update_user_profile(
+            instance,
+            username=validated_data.get("username"),
+            phone=validated_data.get("phone"),
+        )
+
+        # 비밀번호 변경
+        if password:
+            UserService.update_password(instance, password)
+
+        return instance
+
+
+class CheckDuplicateSerializer(serializers.Serializer):
+    type = serializers.ChoiceField(
+        choices=["username", "email", "phone"], required=True
+    )
+    value = serializers.CharField(required=True)
+
+    def validate(self, attrs):
+        check_type = attrs.get("type")
+        value = attrs.get("value")
+
+        if not value:
+            raise serializers.ValidationError(f"{check_type} 값은 필수입니다.")
+
+        if check_type == "username":
+            is_unique, error = UserService.check_username_uniqueness(value)
+            if not is_unique:
+                raise serializers.ValidationError({"username": error})
+        elif check_type == "email":
+            is_unique, error = UserService.check_email_uniqueness(value)
+            if not is_unique:
+                raise serializers.ValidationError({"email": error})
+        elif check_type == "phone":
+            is_unique, error = UserService.check_phone_uniqueness(value)
+            if not is_unique:
+                raise serializers.ValidationError({"phone": error})
+
+        return {check_type: value}

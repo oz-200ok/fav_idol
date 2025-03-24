@@ -1,14 +1,9 @@
-from django.conf import settings
-from django.contrib.auth.tokens import default_token_generator
-from django.core.mail import send_mail
-from django.template.loader import render_to_string
-from drf_yasg.utils import swagger_auto_schema
-from rest_framework import status
+from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from .serializers import (
+    CheckDuplicateSerializer,
     FindEmailSerializer,
     FindPasswordSerializer,
     LoginSerializer,
@@ -16,176 +11,207 @@ from .serializers import (
     RegisterSerializer,
     ResetPasswordSerializer,
     SocialLoginSerializer,
+    UserProfileSerializer,
+    UserProfileUpdateSerializer,
     VerifyEmailSerializer,
 )
+from .services import EmailService, UserService
 
 
-class LoginView(APIView):
-    @swagger_auto_schema(request_body=LoginSerializer)
-    def post(self, request):
-        serializer = LoginSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.validated_data["user"]
-            access_token = serializer.validated_data["access_token"]
-            refresh_token = serializer.validated_data["refresh_token"]
-            expires_in = serializer.validated_data["expires_in"]
-
-            return Response(
-                {
-                    "data": {
-                        "access_token": access_token,
-                        "refresh_token": refresh_token,
-                        "expires_in": expires_in,
-                        "user": {"id": user.id, "email": user.email},
-                    }
-                },
-                status=status.HTTP_200_OK,
-            )
-
-        Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+def custom_response(data=None, status_code=status.HTTP_200_OK):
+    if data is None:
+        return Response(status=status_code)
+    return Response({"data": data}, status=status_code)
 
 
-class SocialLoginView(APIView):
-    def post(self, request):
-        serializer = SocialLoginSerializer(
-            data=request.data, context={"request": request}
-        )
+class LoginView(generics.CreateAPIView):
+    serializer_class = LoginSerializer
 
-        if serializer.is_valid():
-            user = serializer.validated_data["user"]
-            access_token = serializer.validated_data["access_token"]
-            refresh_token = serializer.validated_data["refresh_token"]
-            expires_in = serializer.validated_data["expires_in"]
+    def perform_create(self, serializer):
+        return serializer.validated_data
 
-            return Response(
-                {
-                    "data": {
-                        "access_token": access_token,
-                        "refresh_token": refresh_token,
-                        "expires_in": expires_in,
-                        "user": {"id": user.id, "email": user.email},
-                    }
-                },
-                status=status.HTTP_200_OK,
-            )
-
-        return Response(
-            {"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = self.perform_create(serializer)
+        return custom_response(
+            {
+                "access_token": data["access_token"],
+                "refresh_token": data["refresh_token"],
+                "expires_in": data["expires_in"],
+                "user": {"id": data["user"].id, "email": data["user"].email},
+            }
         )
 
 
-class LogoutView(APIView):
+class SocialLoginView(generics.CreateAPIView):
+    serializer_class = SocialLoginSerializer
+
+    def perform_create(self, serializer):
+        return serializer.validated_data
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = self.perform_create(serializer)
+        return custom_response(
+            {
+                "access_token": data["access_token"],
+                "refresh_token": data["refresh_token"],
+                "expires_in": data["expires_in"],
+                "user": {"id": data["user"].id, "email": data["user"].email},
+            }
+        )
+
+
+class LogoutView(generics.CreateAPIView):
+    serializer_class = LogoutSerializer
     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
-        serializer = LogoutSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                status=status.HTTP_200_OK,
-            )
+    def perform_create(self, serializer):
+        serializer.save()
 
-        return Response(
-            {"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return custom_response(status_code=status.HTTP_200_OK)
+
+
+class RegisterView(generics.CreateAPIView):
+    serializer_class = RegisterSerializer
+
+    def perform_create(self, serializer):
+        user = serializer.save()
+        EmailService.send_verification_email(user)
+        return user
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = self.perform_create(serializer)
+
+        return custom_response(
+            {
+                "user_id": user.id,
+                "email": user.email,
+                "is_verified": user.is_active,
+                "resend_available_in": 600,  # 10분 후 재발송 가능
+            },
+            status_code=status.HTTP_201_CREATED,
         )
 
 
-class RegisterView(APIView):
-    def post(self, request):
-        serializer = RegisterSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.save()
+class VerifyEmailView(generics.RetrieveAPIView):
+    serializer_class = VerifyEmailSerializer
 
-            # 이메일 인증 토큰 생성
-            token = default_token_generator.make_token(user)
+    def get_object(self):
+        return None
 
-            # 인증 이메일 발송
-            verification_url = (
-                f"{settings.FRONTEND_URL}/verify-email?token={token}&email={user.email}"
-            )
-            subject = "I-LOG 회원가입 인증 메일입니다."
-            message = render_to_string(
-                "email_verification.html",
-                {"user": user, "verification_url": verification_url},
-            )
+    def retrieve(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        return custom_response(serializer.validated_data["data"])
 
-            send_mail(
-                subject,
-                message,
-                settings.DEFAULT_FROM_EMAIL,
-                [user.email],
-                fail_silently=False,
-                html_message=message,
-            )
 
-            return Response(
-                {
-                    "data": {
-                        "user_id": user.id,
-                        "email": user.email,
-                        "is_verified": user.is_active,
-                        "resend_available_in": 600,  # 10분 후 재발송 가능
-                    }
-                },
-                status=status.HTTP_201_CREATED,
-            )
+class FindEmailView(generics.CreateAPIView):
+    serializer_class = FindEmailSerializer
 
-        return Response(
-            {"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+    def perform_create(self, serializer):
+        return serializer.validated_data
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = self.perform_create(serializer)
+        return custom_response({"email": data["email"]})
+
+
+class FindPasswordView(generics.CreateAPIView):
+    serializer_class = FindPasswordSerializer
+
+    def perform_create(self, serializer):
+        return serializer.validated_data
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return custom_response()
+
+
+class ResetPasswordView(generics.CreateAPIView):
+    serializer_class = ResetPasswordSerializer
+
+    def perform_create(self, serializer):
+        return serializer.validated_data
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return custom_response(status_code=status.HTTP_201_CREATED)
+
+
+class UserProfileView(generics.RetrieveAPIView):
+    serializer_class = UserProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return custom_response(serializer.data)
+
+
+class UserProfileUpdateView(generics.UpdateAPIView):
+    serializer_class = UserProfileUpdateSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+
+    def perform_update(self, serializer):
+        return serializer.save()
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop("partial", False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        return custom_response(
+            {
+                "username": instance.username,
+                "phone": instance.phone,
+            },
+            status_code=status.HTTP_201_CREATED,
         )
 
 
-class VerifyEmailView(APIView):
-    def get(self, request):
-        serializer = VerifyEmailSerializer(data=request.query_params)
-        if serializer.is_valid():
-            return Response(
-                {
-                    "data": {
-                        **serializer.validated_data["data"],
-                    }
-                },
-                status=status.HTTP_200_OK,
-            )
-        return Response(
-            {"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-        )
+class CheckDuplicateView(generics.GenericAPIView):
+    serializer_class = CheckDuplicateSerializer
+
+    def get(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+
+        return custom_response(serializer.validated_data)
 
 
-class FindEmailView(APIView):
-    def post(self, request):
-        serializer = FindEmailSerializer(data=request.data)
+class UserDeleteView(generics.DestroyAPIView):
+    permission_classes = [IsAuthenticated]
 
-        if serializer.is_valid():
-            return Response(
-                {"data": {"email": serializer.validated_data["email"]}},
-                status=status.HTTP_200_OK,
-            )
+    def get_object(self):
+        return self.request.user
 
-        return Response(
-            {"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-        )
+    def perform_destroy(self, instance):
+        UserService.delete_user_account(instance)
 
-
-class FindPasswordView(APIView):
-    def post(self, request):
-        serializer = FindPasswordSerializer(data=request.data)
-
-        if serializer.is_valid():
-            return Response(status=status.HTTP_200_OK)
-
-        return Response(
-            {"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-        )
-
-
-class ResetPasswordView(APIView):
-    def post(self, request):
-        serializer = ResetPasswordSerializer(data=request.data)
-
-        if serializer.is_valid():
-            return Response(status=status.HTTP_201_CREATED)
-
-        return Response(
-            {"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-        )
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return custom_response(status_code=status.HTTP_204_NO_CONTENT)
