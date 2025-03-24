@@ -59,8 +59,16 @@ jobs:
         run: |
           poetry install --no-root
 
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          until pg_isready -h 127.0.0.1 -U ${{ secrets.POSTGRES_USER }} -d ${{ secrets.POSTGRES_DB }}; do
+            echo "Waiting for database to be ready..."
+            sleep 2
+          done
+
       - name: Create Test Database
         run: |
+          export PGPASSWORD=${{ secrets.POSTGRES_PASSWORD }}  # 비밀번호 환경 변수 설정
           psql -h 127.0.0.1 -U ${{ secrets.POSTGRES_USER }} -d postgres -c "CREATE DATABASE test_fav_idol;"
 
       - name: Run Django Migration
