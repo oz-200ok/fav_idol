@@ -24,6 +24,7 @@ class LoginView(generics.CreateAPIView):
     serializer_class = LoginSerializer
 
     def perform_create(self, serializer):
+        serializer.is_valid(raise_exception=True)
         return serializer.validated_data
 
     def create(self, request, *args, **kwargs):
@@ -37,11 +38,11 @@ class LoginView(generics.CreateAPIView):
             }
         )
 
-
 class SocialLoginView(generics.CreateAPIView):
     serializer_class = SocialLoginSerializer
 
     def perform_create(self, serializer):
+        serializer.is_valid(raise_exception=True)
         return serializer.validated_data
 
     def create(self, request, *args, **kwargs):
