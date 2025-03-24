@@ -26,11 +26,12 @@ class LoginView(generics.CreateAPIView):
     serializer_class = LoginSerializer
 
     def perform_create(self, serializer):
-        serializer.is_valid(raise_exception=True)
         return serializer.validated_data
 
     def create(self, request, *args, **kwargs):
-        data = self.perform_create(self.get_serializer(data=request.data))
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = self.perform_create(serializer)
         return custom_response(
             {
                 "access_token": data["access_token"],
@@ -44,11 +45,12 @@ class SocialLoginView(generics.CreateAPIView):
     serializer_class = SocialLoginSerializer
 
     def perform_create(self, serializer):
-        serializer.is_valid(raise_exception=True)
         return serializer.validated_data
 
     def create(self, request, *args, **kwargs):
-        data = self.perform_create(self.get_serializer(data=request.data))
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = self.perform_create(serializer)
         return custom_response(
             {
                 "access_token": data["access_token"],
@@ -64,11 +66,12 @@ class LogoutView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
-        serializer.is_valid(raise_exception=True)
         serializer.save()
 
     def create(self, request, *args, **kwargs):
-        self.perform_create(self.get_serializer(data=request.data))
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
         return custom_response(status_code=status.HTTP_200_OK)
 
 
@@ -125,11 +128,12 @@ class FindPasswordView(generics.CreateAPIView):
     serializer_class = FindPasswordSerializer
 
     def perform_create(self, serializer):
-        serializer.is_valid(raise_exception=True)
-        EmailService.send_password_reset_email(serializer.validated_data['user'])
+        return serializer.validated_data
 
     def create(self, request, *args, **kwargs):
-        self.perform_create(self.get_serializer(data=request.data))
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
         return custom_response()
 
 
@@ -137,11 +141,12 @@ class ResetPasswordView(generics.CreateAPIView):
     serializer_class = ResetPasswordSerializer
 
     def perform_create(self, serializer):
-        serializer.is_valid(raise_exception=True)
         return serializer.validated_data
 
     def create(self, request, *args, **kwargs):
-        self.perform_create(self.get_serializer(data=request.data))
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
         return custom_response(status_code=status.HTTP_201_CREATED)
 
 
