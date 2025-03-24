@@ -18,6 +18,8 @@ from .serializers import (
 from .services import EmailService, UserService
 
 def custom_response(data=None, status_code=status.HTTP_200_OK):
+    if data is None:
+        Response({}, status=status_code)
     return Response({"data": data}, status=status_code)
 
 class LoginView(generics.CreateAPIView):
@@ -61,11 +63,13 @@ class LogoutView(generics.CreateAPIView):
     serializer_class = LogoutSerializer
     permission_classes = [IsAuthenticated]
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+    def perform_create(self, serializer):
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(status=status.HTTP_200_OK)
+
+    def create(self, request, *args, **kwargs):
+        self.perform_create(self.get_serializer(data=request.data))
+        return custom_response(status_code=status.HTTP_200_OK)
 
 
 class RegisterView(generics.CreateAPIView):
