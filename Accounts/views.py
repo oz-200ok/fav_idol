@@ -124,19 +124,25 @@ class FindEmailView(generics.CreateAPIView):
 class FindPasswordView(generics.CreateAPIView):
     serializer_class = FindPasswordSerializer
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+    def perform_create(self, serializer):
         serializer.is_valid(raise_exception=True)
-        return Response(status=status.HTTP_200_OK)
+        EmailService.send_password_reset_email(serializer.validated_data['user'])
+
+    def create(self, request, *args, **kwargs):
+        self.perform_create(self.get_serializer(data=request.data))
+        return custom_response()
 
 
 class ResetPasswordView(generics.CreateAPIView):
     serializer_class = ResetPasswordSerializer
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+    def perform_create(self, serializer):
         serializer.is_valid(raise_exception=True)
-        return Response(status=status.HTTP_201_CREATED)
+        return serializer.validated_data
+
+    def create(self, request, *args, **kwargs):
+        self.perform_create(self.get_serializer(data=request.data))
+        return custom_response(status_code=status.HTTP_201_CREATED)
 
 
 class UserProfileView(generics.RetrieveAPIView):
