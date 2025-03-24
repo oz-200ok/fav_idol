@@ -14,6 +14,11 @@ class ScheduleListView(ListCreateAPIView):
     serializer_class = ScheduleSerializer
     permission_classes = [IsAdminOrReadOnly]
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["request"] = self.request  # request 객체를 context에 추가
+        return context
+
 class ScheduleDetailView(RetrieveUpdateDestroyAPIView):
     """
     특정 일정 상세 조회, 수정 및 삭제
