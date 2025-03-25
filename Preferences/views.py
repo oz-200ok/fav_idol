@@ -51,7 +51,7 @@ class SubscribeViewSet(viewsets.GenericViewSet):
         )
         
         if success:
-            return self.custom_response(status_code=status.HTTP_204_NO_CONTENT)
+            return self.custom_response(status=status.HTTP_204_NO_CONTENT)
         return self.custom_response(
             status=status.HTTP_404_NOT_FOUND
         )
