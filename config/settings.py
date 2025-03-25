@@ -16,7 +16,6 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 TEMPLATE_DIR = os.path.join(BASE_DIR, "templates")
@@ -55,7 +54,7 @@ INSTALLED_APPS = [
     "drf_yasg",
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
-    'corsheaders',
+    "corsheaders",
     "Accounts",
     "Idols",
     "Schedules",
@@ -71,7 +70,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
-    'corsheaders.middleware.CorsMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -106,8 +105,8 @@ DATABASES = {
         "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
         "HOST": os.getenv("POSTGRES_HOST"),
         "PORT": os.getenv("POSTGRES_PORT"),
-        'OPTIONS': {
-            'sslmode': 'disable',  # SSL을 비활성화
+        "OPTIONS": {
+            "sslmode": "disable",  # SSL을 비활성화
         },
     }
 }
