@@ -29,6 +29,7 @@ class GroupSerializer(serializers.ModelSerializer):
             "agency_name",
             "id",
             "name",
+            "agency",
             "sns",
             "color",
             "image",
