@@ -37,6 +37,7 @@ urlpatterns = [
     path("ilog/account/", include("Accounts.urls")),
     path("ilog/schedule/", include("Schedules.urls")),
     path("ilog/idol/", include("Idols.urls")),
+    path("ilog/service/", include("Preferences.urls")),
     path("ilog/accounts/", include("allauth.urls")),
     # Swagger 문서 URL 추가
     path(
