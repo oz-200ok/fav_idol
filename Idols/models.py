@@ -1,5 +1,5 @@
-from django.db import models
 from django.core.validators import RegexValidator
+from django.db import models
 
 
 class Agency(models.Model):
@@ -16,11 +16,14 @@ class Group(models.Model):
     agency = models.ForeignKey(Agency, on_delete=models.CASCADE)  # 소속사
     color = models.CharField(
         max_length=7,
-        validators=[RegexValidator(regex="^#[0-9A-Fa-f]{6}$", message="유효한 HEX 색상을 입력하세요.")],
+        validators=[
+            RegexValidator(
+                regex="^#[0-9A-Fa-f]{6}$", message="유효한 HEX 색상을 입력하세요."
+            )
+        ],
     )
     sns = models.URLField(blank=True, null=True)  # SNS 링크
     image = models.URLField(max_length=500)  # 그룹 이미지
-
 
     def __str__(self):
         return f"{self.name} ({self.agency.name})"

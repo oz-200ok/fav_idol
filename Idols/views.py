@@ -58,24 +58,16 @@ class IdolListView(ListCreateAPIView):
 class IdolDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Idol.objects.select_related("group")
     serializer_class = IdolSerializer
-    permission_classes = [IsAdminOrReadOnly]
 
-    def delete(self, request, pk):
-        # 해당 ID의 객체를 가져오고, 없으면 404 반환
-        idol = get_object_or_404(Idol, pk=pk)
-
-        # 삭제된 데이터를 반환할 정보 구성
-        deleted_data = {
-            "id": idol.id,
-            "name": idol.name,
-            "group_id": idol.group_id,
+    def delete(self, request, *args, **kwargs):
+        instance = self.get_object()
+        deleted_idol_data = {
+            "idol.id": instance.id,
+            "group_id": instance.group_id,
+            "name": instance.name,
         }
+        self.perform_destroy(instance)
 
-        # 객체 삭제
-        idol.delete()
-
-        # 응답 반환
         return Response(
-            {"message": "삭제 완료", "data": deleted_data},
-            status=status.HTTP_200_OK,
+            {"data": deleted_idol_data},
         )
