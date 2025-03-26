@@ -4,6 +4,8 @@ from rest_framework.generics import (
     RetrieveUpdateDestroyAPIView,
 )
 from rest_framework.response import Response
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 from .models import Schedule
 from .permissions import IsAdminOrReadOnly
@@ -14,10 +16,11 @@ class ScheduleListView(ListCreateAPIView):
     """
     일정 목록 조회 및 등록
     """
-
     queryset = Schedule.objects.all()
     serializer_class = ScheduleSerializer
     permission_classes = [IsAdminOrReadOnly]
+
+    @swagger_auto_schema(request_body=ScheduleSerializer)
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -34,6 +37,24 @@ class ScheduleDetailView(RetrieveUpdateDestroyAPIView):
     serializer_class = ScheduleSerializer
     permission_classes = [IsAdminOrReadOnly]
 
+    @swagger_auto_schema(
+        request_body=ScheduleSerializer,
+        responses={
+            200: openapi.Response(
+                description="일정 삭제 성공",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "group_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="그룹 ID"),
+                        "schedule_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="일정 ID"),
+                    },
+                ),
+            ),
+            404: openapi.Response(
+                description="일정을 찾을 수 없음",
+            ),
+        },
+    )
     def delete(self, request, *args, **kwargs):
         instance = self.get_object()
         deleted_schedule_data = {
