@@ -25,7 +25,7 @@ class ScheduleListView(ListCreateAPIView):
         context = super().get_serializer_context()
         context["request"] = self.request  # request 객체를 context에 추가
         return context
-    
+
     def perform_create(self, serializer):
         # 일정 생성
         schedule = serializer.save()

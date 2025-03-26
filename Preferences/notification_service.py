@@ -1,7 +1,10 @@
 from concurrent.futures import ThreadPoolExecutor
-from django.core.mail import send_mail
+
 from django.conf import settings
+from django.core.mail import send_mail
+
 from .models import UserGroupSubscribe
+
 
 class NotificationService:
     @staticmethod
@@ -25,16 +28,15 @@ class NotificationService:
         """새로운 일정이 생성되면 구독자들에게 이메일 알림을 발송합니다."""
         # 해당 그룹을 구독하고 알림 설정이 활성화된 사용자 조회
         subscribers = UserGroupSubscribe.objects.filter(
-            group_id=schedule.group_id,
-            notification=True
-        ).select_related('user')
-        
+            group_id=schedule.group_id, notification=True
+        ).select_related("user")
+
         if not subscribers:
             return False
-        
+
         # 이메일 제목과 내용 구성
-        subject = f'[ILOG] {schedule.group.name} 새 일정 알림'
-        
+        subject = f"[ILOG] {schedule.group.name} 새 일정 알림"
+
         # 이메일을 비동기적으로 발송
         with ThreadPoolExecutor(max_workers=5) as executor:
             for subscriber in subscribers:
@@ -56,7 +58,7 @@ class NotificationService:
                         NotificationService.send_email_async,
                         subject,
                         message,
-                        subscriber.user.email
+                        subscriber.user.email,
                     )
-        
+
         return True
