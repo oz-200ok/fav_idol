@@ -14,11 +14,7 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
-import pymysql
 from dotenv import load_dotenv
-
-pymysql.install_as_MySQLdb()
-
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -58,6 +54,7 @@ INSTALLED_APPS = [
     "drf_yasg",
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
+    "corsheaders",
     "Accounts",
     "Idols",
     "Schedules",
@@ -65,6 +62,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -101,15 +99,14 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.mysql",
-        "NAME": os.getenv("MYSQL_DATABASE"),
-        "USER": os.getenv("MYSQL_USER"),
-        "PASSWORD": os.getenv("MYSQL_PASSWORD"),
-        "HOST": os.getenv("MYSQL_HOST"),
-        "PORT": os.getenv("MYSQL_PORT"),
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("POSTGRES_DB"),
+        "USER": os.getenv("POSTGRES_USER"),
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
+        "HOST": os.getenv("POSTGRES_HOST"),
+        "PORT": os.getenv("POSTGRES_PORT"),
         "OPTIONS": {
-            "charset": "utf8mb4",
-            "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+            "sslmode": "disable",  # SSL을 비활성화
         },
     }
 }
@@ -222,4 +219,43 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = f"ILOG <{EMAIL_HOST_USER}>"
 
-FRONTEND_URL = "http://127.0.0.1:8000/ilog/account"
+FRONTEND_URL = os.getenv("FRONTEND_URL")
+
+CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS").split(",")
+CORS_ALLOW_CREDENTIALS = True
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+        "file": {
+            "level": "DEBUG",
+            "class": "logging.FileHandler",
+            "filename": "debug.log",  # 프로젝트 루트 디렉토리에 저장됨
+            "formatter": "verbose",
+        },
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console", "file"],
+            "level": "INFO",
+            "propagate": True,
+        },
+        "Accounts": {
+            "handlers": ["file"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+    },
+}
