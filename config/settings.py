@@ -14,11 +14,7 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
-import pymysql
 from dotenv import load_dotenv
-
-pymysql.install_as_MySQLdb()
-
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -107,6 +103,7 @@ DATABASES = {
         "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
         "HOST": os.getenv("POSTGRES_HOST"),
         "PORT": os.getenv("POSTGRES_PORT", "5432"),
+        "options": {"sslmode": "disable"},
     }
 }
 
