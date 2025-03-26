@@ -11,7 +11,7 @@ class AgencySerializer(serializers.ModelSerializer):
 
     # 이름 중복 검증
     def validate_name(self, value):
-        if Agency.objects.filter(name=value).exists():
+        if Agency.objects.filter(name__iexact=value).exists():
             raise serializers.ValidationError("같은 이름의 소속사가 존재합니다.")
         return value
 
@@ -52,10 +52,13 @@ class IdolSerializer(serializers.ModelSerializer):
         model = Idol
         fields = ["name", "group", "group_name"]  # 사용 필드 정의
 
-    # 같은 그룹 내에 들어가는 아이돌 이름이 중복될 경우를 검증
     def validate(self, data):
         name = data.get("name")
         group = data.get("group")
+
+        # 데이터 유효성 검사
+        if not name or not group:
+            raise serializers.ValidationError("이름과 그룹은 필수 입력 항목입니다.")
 
         if Idol.objects.filter(name=name, group=group).exists():
             raise serializers.ValidationError(

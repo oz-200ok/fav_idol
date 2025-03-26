@@ -15,11 +15,10 @@ class AgencyAdmin(admin.ModelAdmin):
     list_display = ("name", "contact", "image_preview")
 
     def image_preview(self, obj):
-        if obj.image_url:  # image_url이 존재할 경우에만 표시
+        if obj.image:  # image_url이 존재할 경우에만 표시
             return format_html(
                 '<img src="{}" style="max-width: 100px;" />', obj.image_url
             )
-        return "No Image"  # image)url이 없을 경우
 
     search_fields = ("name",)
     fields = ("name", "contact")
@@ -31,11 +30,10 @@ class GroupAdmin(admin.ModelAdmin):
     list_display = ("name", "agency", "image_preview")
 
     def image_preview(self, obj):
-        if obj.image_url:  # image_url이 존재할 경우에만 표시
+        if obj.image:  # image_url이 존재할 경우에만 표시
             return format_html(
                 '<img src="{}" style="max-width: 100px;" />', obj.image_url
             )
-        return "No Image"  # image)url이 없을 경우ß
 
     search_fields = ("name",)
     fields = ("name", "agency")
