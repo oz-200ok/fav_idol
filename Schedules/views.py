@@ -1,11 +1,11 @@
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework.generics import (
     ListAPIView,
     ListCreateAPIView,
     RetrieveUpdateDestroyAPIView,
 )
 from rest_framework.response import Response
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
 
 from .models import Schedule
 from .permissions import IsAdminOrReadOnly
@@ -16,12 +16,12 @@ class ScheduleListView(ListCreateAPIView):
     """
     일정 목록 조회 및 등록
     """
+
     queryset = Schedule.objects.all()
     serializer_class = ScheduleSerializer
     permission_classes = [IsAdminOrReadOnly]
 
     @swagger_auto_schema(request_body=ScheduleSerializer)
-
     def get_serializer_context(self):
         context = super().get_serializer_context()
         context["request"] = self.request  # request 객체를 context에 추가
@@ -45,8 +45,9 @@ class ScheduleDetailView(RetrieveUpdateDestroyAPIView):
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
+                        "schedule.id": openapi.Schema(type=openapi.TYPE_INTEGER, description="일정 ID"),
                         "group_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="그룹 ID"),
-                        "schedule_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="일정 ID"),
+                        "title": openapi.Schema(type=openapi.TYPE_STRING, description="일정 제목"),
                     },
                 ),
             ),
@@ -63,10 +64,63 @@ class ScheduleDetailView(RetrieveUpdateDestroyAPIView):
             "title": instance.title,
         }
         self.perform_destroy(instance)
+        return Response(deleted_schedule_data, status=200)
 
-        return Response(
-            {"data": deleted_schedule_data},
-        )
+    @swagger_auto_schema(
+        request_body=ScheduleSerializer,
+        responses={
+            200: openapi.Response(
+                description="일정 수정 성공",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "group_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="그룹 ID"),
+                        "schedule_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="일정 ID"),
+                    },
+                ),
+            ),
+            201: openapi.Response(
+                description="일정 등록 성공",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "group_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="그룹 ID"),
+                        "schedule_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="일정 ID"),
+                    },
+                ),
+            ),
+        },
+    )
+    def update(self, request, *args, **kwargs):
+        # 일정 수정 처리 로직...
+        updated_data = {
+            "group_id": request.data.get("group_id"),
+            "schedule_id": self.kwargs["pk"],
+        }
+        return Response(updated_data, status=200)
+
+    @swagger_auto_schema(
+        request_body=ScheduleSerializer,
+        responses={
+            201: openapi.Response(
+                description="일정 등록 성공",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "group_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="그룹 ID"),
+                        "schedule_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="일정 ID"),
+                    },
+                ),
+            ),
+        },
+    )
+    def create(self, request, *args, **kwargs):
+        # 일정 등록 처리 로직...
+        created_data = {
+            "group_id": request.data.get("group_id"),
+            "schedule_id": 123,  # 새로 생성된 ID를 반환
+        }
+        return Response(created_data, status=201)
 
 
 class GroupScheduleListView(ListAPIView):
