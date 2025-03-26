@@ -212,12 +212,13 @@ JWT_EXPIRES_IN = int(os.getenv("JWT_EXPIRES_IN", 86400))
 
 # 이메일 설정
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.naver.com"
+EMAIL_HOST = "in-v3.mailjet.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_SENDER = "pcm0422@naver.com"
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
-DEFAULT_FROM_EMAIL = f"ILOG <{EMAIL_HOST_USER}>"
+DEFAULT_FROM_EMAIL = f"ILOG <pcm0422@naver.com>"
 
 FRONTEND_URL = os.getenv("FRONTEND_URL")
 

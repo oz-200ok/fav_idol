@@ -7,6 +7,8 @@ from rest_framework.generics import (
 )
 from rest_framework.response import Response
 
+from Preferences.notification_service import NotificationService
+
 from .models import Schedule
 from .permissions import IsAdminOrReadOnly
 from .serializer import ScheduleSerializer
@@ -26,6 +28,12 @@ class ScheduleListView(ListCreateAPIView):
         context = super().get_serializer_context()
         context["request"] = self.request  # request 객체를 context에 추가
         return context
+
+    def perform_create(self, serializer):
+        # 일정 생성
+        schedule = serializer.save()
+        # 일정 생성 후 알림 발송 (비동기적으로 처리됨)
+        NotificationService.notify_schedule_creation(schedule)
 
 
 class ScheduleDetailView(RetrieveUpdateDestroyAPIView):
