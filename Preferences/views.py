@@ -1,8 +1,8 @@
 from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from .models import UserGroupSubscribe
 
+from .models import UserGroupSubscribe
 from .serializers import SubscribeResponseSerializer, SubscribeSerializer
 from .services import SubscriptionService
 
