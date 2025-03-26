@@ -7,10 +7,11 @@ from rest_framework.generics import (
 )
 from rest_framework.response import Response
 
+from config.permissions import IsAdminOrReadOnly
+
 from Preferences.notification_service import NotificationService
 
 from .models import Schedule
-from .permissions import IsAdminOrReadOnly
 from .serializer import ScheduleSerializer
 
 

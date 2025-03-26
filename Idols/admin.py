@@ -19,7 +19,6 @@ class AgencyAdmin(admin.ModelAdmin):
             return format_html(
                 '<img src="{}" style="max-width: 100px;" />', obj.image_url
             )
-        return "No Image"  # image)url이 없을 경우
 
     search_fields = ("name",)
     fields = ("name", "contact")
@@ -35,7 +34,6 @@ class GroupAdmin(admin.ModelAdmin):
             return format_html(
                 '<img src="{}" style="max-width: 100px;" />', obj.image_url
             )
-        return "No Image"  # image)url이 없을 경우ß
 
     search_fields = ("name",)
     fields = ("name", "agency")
