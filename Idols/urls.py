@@ -1,6 +1,13 @@
 from django.urls import path
 
-from .views import AgencyListView, GroupListView, IdolListView, AgencyDetailView, GroupDetailView, IdolDetailView
+from .views import (
+    AgencyDetailView,
+    AgencyListView,
+    GroupDetailView,
+    GroupListView,
+    IdolDetailView,
+    IdolListView,
+)
 
 urlpatterns = [
     # 에이전시 리스트

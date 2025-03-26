@@ -1,12 +1,16 @@
 from django.db.models import Count
 from rest_framework import status
-from rest_framework.generics import get_object_or_404
+from rest_framework.generics import (
+    ListCreateAPIView,
+    RetrieveUpdateDestroyAPIView,
+    get_object_or_404,
+)
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
+
+from config.permissions import IsAdminOrReadOnly, IsSuperUser
 
 from .models import Agency, Group, Idol
-from config.permissions import IsAdminOrReadOnly, IsSuperUser
 from .serializers import AgencySerializer, GroupSerializer, IdolSerializer
 
 
@@ -37,6 +41,7 @@ class GroupListView(ListCreateAPIView):
     serializer_class = GroupSerializer
     permission_classes = [IsAdminOrReadOnly]
 
+
 class GroupDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Group.objects.select_related("agency")
     serializer_class = GroupSerializer
@@ -48,6 +53,7 @@ class IdolListView(ListCreateAPIView):
     queryset = Idol.objects.select_related("group")
     serializer_class = IdolSerializer
     permission_classes = [IsAdminOrReadOnly]
+
 
 class IdolDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Idol.objects.select_related("group")

@@ -37,7 +37,7 @@ class GroupSerializer(serializers.ModelSerializer):
 
     # 이름 중복 검증
     def validate_name(self, value):
-        if Group.objects.filter(name=value).exists():
+        if Group.objects.filter(name__iexact=value).exists():
             raise serializers.ValidationError("같은 이름의 그룹이 존재합니다.")
         return value
 
