@@ -252,7 +252,7 @@ LOGGING = {
             'level': 'INFO',
             'propagate': True,
         },
-        'myapp': {  # 자신의 앱 이름으로 변경
+        'Accounts': { 
             'handlers': ['file'],
             'level': 'DEBUG',
             'propagate': False,
