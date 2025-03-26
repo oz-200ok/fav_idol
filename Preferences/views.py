@@ -1,6 +1,7 @@
 from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from .models import UserGroupSubscribe
 
 from .serializers import SubscribeResponseSerializer, SubscribeSerializer
 from .services import SubscriptionService
@@ -10,6 +11,7 @@ class SubscribeViewSet(viewsets.GenericViewSet):
     # 그룹 구독을 관리하는 뷰셋
     permission_classes = [IsAuthenticated]
     serializer_class = SubscribeSerializer
+    queryset = UserGroupSubscribe.objects.none()  # 스키마 생성을 위한 빈 쿼리셋 추가
 
     def get_serializer_class(self):
         # 메서드에 따른 시리얼라이저 동적 선택
