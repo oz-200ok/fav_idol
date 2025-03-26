@@ -42,6 +42,7 @@ class GroupSerializer(serializers.ModelSerializer):
         return value
 
 
+
 # Idol Serializer
 class IdolSerializer(serializers.ModelSerializer):
     group_name = serializers.CharField(

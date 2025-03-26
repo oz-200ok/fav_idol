@@ -1,10 +1,11 @@
 from django.db import models
+from django.core.validators import RegexValidator
 
 
 class Agency(models.Model):
     name = models.CharField(max_length=20)  # null 불가, 공백 불가
     contact = models.CharField(max_length=50, null=True)
-    image = models.ImageField(upload_to="agencies/", blank=True, null=True)
+    image = models.URLField(max_length=500)
 
     def __str__(self):
         return self.name
@@ -13,9 +14,12 @@ class Agency(models.Model):
 class Group(models.Model):
     name = models.CharField(max_length=100, unique=True)  # 그룹 이름
     agency = models.ForeignKey(Agency, on_delete=models.CASCADE)  # 소속사
-    color = models.CharField(max_length=7)  # HEX 색상 코드
+    color = models.CharField(
+        max_length=7,
+        validators=[RegexValidator(regex="^#[0-9A-Fa-f]{6}$", message="유효한 HEX 색상을 입력하세요.")],
+    )
     sns = models.URLField(blank=True, null=True)  # SNS 링크
-    image = models.ImageField(upload_to="groups/", blank=True, null=True)  # 그룹 이미지
+    image = models.URLField(max_length=500)  # 그룹 이미지
 
 
     def __str__(self):
@@ -25,7 +29,7 @@ class Group(models.Model):
 class Idol(models.Model):
     group = models.ForeignKey(Group, on_delete=models.CASCADE)
     name = models.CharField(max_length=10)
-    image = models.CharField(max_length=255, null=True, blank=True)
+    image = models.URLField(max_length=500)
 
     def __str__(self):
         return f"{self.name} ({self.group.name})"
