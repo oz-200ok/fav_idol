@@ -7,9 +7,12 @@ from .models import Agency, Group, Idol
 
 # Agency Serializer
 class AgencySerializer(serializers.ModelSerializer):
+    image_file = serializers.ImageField(write_only=True, required=False)
+    
     class Meta:
         model = Agency
-        fields = ["name", "contact"]  # 필요한 필드 정의
+        fields = ["name", "contact", "image", "image_file"]  # 필요한 필드 정의
+        read_only_fields = ["image"] # image 필드는 읽기 전용으로 설정
 
     # 이름 중복 검증
     def validate_name(self, value):
@@ -44,6 +47,7 @@ class GroupSerializer(serializers.ModelSerializer):
         source="agency.name", read_only=True
     )  # 관련 소속사 이름 추가 (읽기 전용)
     member_count = serializers.IntegerField(read_only=True)  # 그룹 멤버 수 추가
+    image_file = serializers.ImageField(write_only=True, required=False)
 
     class Meta:
         model = Group
@@ -56,7 +60,10 @@ class GroupSerializer(serializers.ModelSerializer):
             "color",
             "image",
             "member_count",
+            "image_file",
         ]  # 사용 필드 정의
+        
+        read_only_fields = ["image"] # image 필드는 읽기 전용으로 설정
 
     # 이름 중복 검증
     def validate_name(self, value):
@@ -91,10 +98,12 @@ class IdolSerializer(serializers.ModelSerializer):
     group_name = serializers.CharField(
         source="group.name", read_only=True
     )  # 관련 그룹 이름 추가 (읽기 전용)
+    image_file = serializers.ImageField(write_only=True, required=False)
 
     class Meta:
         model = Idol
-        fields = ["name", "group", "group_name"]  # 사용 필드 정의
+        fields = ["name", "group", "group_name", "image_file"] # 사용 필드 정의
+        read_only_fields = ["image"]  
 
     def validate(self, data):
         name = data.get("name")
