@@ -227,8 +227,8 @@ class ResetPasswordSerializer(serializers.Serializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ("id", "email", "username", "name", "phone")
-        read_only_fields = ("id", "email", "username", "name", "phone")
+        fields = ("id", "email", "username", "name", "phone", "is_admin")
+        read_only_fields = ("id", "email", "username", "name", "phone", "is_admin")
 
 
 class UserProfileUpdateSerializer(serializers.ModelSerializer):
