@@ -2,6 +2,10 @@ from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+
+
 from .serializers import (
     CheckDuplicateSerializer,
     FindEmailSerializer,
@@ -195,6 +199,12 @@ class UserProfileUpdateView(generics.UpdateAPIView):
 class CheckDuplicateView(generics.GenericAPIView):
     serializer_class = CheckDuplicateSerializer
 
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter('type', in_=openapi.IN_QUERY, type=openapi.TYPE_STRING, required=True, description="확인할 항목 (username, email, phone)"),
+            openapi.Parameter('value', in_=openapi.IN_QUERY, type=openapi.TYPE_STRING, required=True, description="확인할 값"),
+        ]
+    )
     def get(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
