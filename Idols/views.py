@@ -1,4 +1,6 @@
 from django.db.models import Count
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.generics import (
     ListCreateAPIView,
@@ -7,8 +9,6 @@ from rest_framework.generics import (
 )
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
 
 from config.permissions import IsAdminOrReadOnly, IsSuperUser
 
@@ -23,19 +23,19 @@ class AgencyListView(ListCreateAPIView):
     permission_classes = [IsAdminOrReadOnly]
 
     @swagger_auto_schema(
-        operation_description="에이전시 목록을 가져옵니다.",
-        responses={200: AgencySerializer(many=True)}  # 목록 반환
+        operation_description="소속사 목록을 가져옵니다.",
+        responses={200: AgencySerializer(many=True)},  # 목록 반환
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
 
     @swagger_auto_schema(
-        operation_description="새 에이전시를 생성합니다.",
+        operation_description="새 소속사를 생성합니다.",
         request_body=AgencySerializer,  # POST 요청 시 필요한 데이터 정의
         responses={
             201: AgencySerializer,  # 생성 성공 시 반환될 데이터
             400: "유효하지 않은 요청 데이터입니다.",  # 유효성 오류
-        }
+        },
     )
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
@@ -52,14 +52,14 @@ class AgencyDetailView(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsSuperUser]
 
     @swagger_auto_schema(
-        operation_description="특정 에이전시 데이터를 조회합니다.",
+        operation_description="특정 소속사 데이터를 조회합니다.",
         responses={200: AgencySerializer},  # 성공 시 반환할 데이터 스키마
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
 
     @swagger_auto_schema(
-        operation_description="특정 에이전시 데이터를 업데이트합니다.",
+        operation_description="특정 소속사 데이터를 업데이트합니다.",
         request_body=AgencySerializer,  # 요청 시 필요한 데이터 스키마
         responses={
             200: AgencySerializer,  # 성공 시 반환할 데이터 스키마
@@ -70,10 +70,10 @@ class AgencyDetailView(RetrieveUpdateDestroyAPIView):
         return super().put(request, *args, **kwargs)
 
     @swagger_auto_schema(
-        operation_description="특정 에이전시 데이터를 삭제합니다.",
+        operation_description="특정 소속사 데이터를 삭제합니다.",
         responses={
             204: "데이터 삭제 성공",  # No Content 응답
-            404: "에이전시를 찾을 수 없습니다.",
+            404: "소속사를 찾을 수 없습니다.",
         },
     )
     def delete(self, request, *args, **kwargs):
@@ -107,7 +107,6 @@ class GroupListView(ListCreateAPIView):
     )
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
-
 
 
 class GroupDetailView(RetrieveUpdateDestroyAPIView):
@@ -147,7 +146,6 @@ class GroupDetailView(RetrieveUpdateDestroyAPIView):
         return super().delete(request, *args, **kwargs)
 
 
-
 # 아이돌 리스트
 class IdolListView(ListCreateAPIView):
     queryset = Idol.objects.select_related("group")
@@ -164,7 +162,7 @@ class IdolListView(ListCreateAPIView):
         return super().get(request, *args, **kwargs)
 
     @swagger_auto_schema(
-        operation_description="새 아이돌을 생성합니다.",
+        operation_description="개별 아이돌을 생성합니다.",
         request_body=IdolSerializer,  # 생성 시 필요한 데이터 스키마
         responses={
             201: IdolSerializer,  # 생성된 아이돌 반환
@@ -173,7 +171,6 @@ class IdolListView(ListCreateAPIView):
     )
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
-
 
 
 class IdolDetailView(RetrieveUpdateDestroyAPIView):
@@ -232,4 +229,3 @@ class IdolDetailView(RetrieveUpdateDestroyAPIView):
             {"data": deleted_idol_data},
             status=status.HTTP_200_OK,
         )
-
