@@ -154,11 +154,71 @@ class IdolListView(ListCreateAPIView):
     serializer_class = IdolSerializer
     permission_classes = [IsAdminOrReadOnly]
 
+    @swagger_auto_schema(
+        operation_description="아이돌 목록을 가져옵니다.",
+        responses={
+            200: IdolSerializer(many=True),  # 아이돌 목록 반환
+        },
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description="새 아이돌을 생성합니다.",
+        request_body=IdolSerializer,  # 생성 시 필요한 데이터 스키마
+        responses={
+            201: IdolSerializer,  # 생성된 아이돌 반환
+            400: "유효하지 않은 요청 데이터",
+        },
+    )
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
+
+
 
 class IdolDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Idol.objects.select_related("group")
     serializer_class = IdolSerializer
 
+    @swagger_auto_schema(
+        operation_description="특정 아이돌 데이터를 조회합니다.",
+        responses={
+            200: IdolSerializer,  # 성공 시 아이돌 데이터 반환
+            404: "아이돌을 찾을 수 없습니다.",
+        },
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description="특정 아이돌 데이터를 업데이트합니다.",
+        request_body=IdolSerializer,  # 요청 시 필요한 데이터 스키마
+        responses={
+            200: IdolSerializer,  # 성공 시 업데이트된 데이터 반환
+            400: "유효하지 않은 요청 데이터",
+        },
+    )
+    def put(self, request, *args, **kwargs):
+        return super().put(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description="특정 아이돌 데이터를 삭제합니다.",
+        responses={
+            200: openapi.Response(
+                description="삭제된 아이돌 데이터",
+                examples={
+                    "application/json": {
+                        "data": {
+                            "idol.id": 1,
+                            "group_id": 2,
+                            "name": "아이돌 이름",
+                        }
+                    }
+                },
+            ),
+            404: "아이돌을 찾을 수 없습니다.",
+        },
+    )
     def delete(self, request, *args, **kwargs):
         instance = self.get_object()
         deleted_idol_data = {
@@ -170,4 +230,6 @@ class IdolDetailView(RetrieveUpdateDestroyAPIView):
 
         return Response(
             {"data": deleted_idol_data},
+            status=status.HTTP_200_OK,
         )
+
