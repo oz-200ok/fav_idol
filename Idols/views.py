@@ -89,6 +89,7 @@ class GroupListView(ListCreateAPIView):
     )
     serializer_class = GroupSerializer
     permission_classes = [IsAdminOrReadOnly]
+    parser_classes = (MultiPartParser, FormParser)
 
     @swagger_auto_schema(
         operation_description="그룹 목록을 가져옵니다.",
@@ -115,6 +116,7 @@ class GroupDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Group.objects.select_related("agency")
     serializer_class = GroupSerializer
     permission_classes = [IsSuperUser]
+    parser_classes = (MultiPartParser, FormParser)
 
     @swagger_auto_schema(
         operation_description="특정 그룹 데이터를 조회합니다.",
