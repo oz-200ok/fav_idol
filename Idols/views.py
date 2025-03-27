@@ -7,6 +7,7 @@ from rest_framework.generics import (
     RetrieveUpdateDestroyAPIView,
     get_object_or_404,
 )
+from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
@@ -21,6 +22,7 @@ class AgencyListView(ListCreateAPIView):
     queryset = Agency.objects.all()
     serializer_class = AgencySerializer
     permission_classes = [IsAdminOrReadOnly]
+    parser_classes = (MultiPartParser, FormParser)
 
     @swagger_auto_schema(
         operation_description="소속사 목록을 가져옵니다.",
@@ -31,10 +33,9 @@ class AgencyListView(ListCreateAPIView):
 
     @swagger_auto_schema(
         operation_description="새 소속사를 생성합니다.",
-        request_body=AgencySerializer,  # POST 요청 시 필요한 데이터 정의
         responses={
-            201: AgencySerializer,  # 생성 성공 시 반환될 데이터
-            400: "유효하지 않은 요청 데이터입니다.",  # 유효성 오류
+            201: AgencySerializer,
+            400: "유효하지 않은 요청 데이터입니다.",
         },
     )
     def post(self, request, *args, **kwargs):
@@ -50,6 +51,7 @@ class AgencyDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Agency.objects.all()
     serializer_class = AgencySerializer
     permission_classes = [IsSuperUser]
+    parser_classes = (MultiPartParser, FormParser)
 
     @swagger_auto_schema(
         operation_description="특정 소속사 데이터를 조회합니다.",
@@ -87,6 +89,7 @@ class GroupListView(ListCreateAPIView):
     )
     serializer_class = GroupSerializer
     permission_classes = [IsAdminOrReadOnly]
+    parser_classes = (MultiPartParser, FormParser)
 
     @swagger_auto_schema(
         operation_description="그룹 목록을 가져옵니다.",
@@ -113,6 +116,7 @@ class GroupDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Group.objects.select_related("agency")
     serializer_class = GroupSerializer
     permission_classes = [IsSuperUser]
+    parser_classes = (MultiPartParser, FormParser)
 
     @swagger_auto_schema(
         operation_description="특정 그룹 데이터를 조회합니다.",
@@ -151,6 +155,7 @@ class IdolListView(ListCreateAPIView):
     queryset = Idol.objects.select_related("group")
     serializer_class = IdolSerializer
     permission_classes = [IsAdminOrReadOnly]
+    parser_classes = (MultiPartParser, FormParser)
 
     @swagger_auto_schema(
         operation_description="아이돌 목록을 가져옵니다.",
@@ -176,6 +181,7 @@ class IdolListView(ListCreateAPIView):
 class IdolDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Idol.objects.select_related("group")
     serializer_class = IdolSerializer
+    parser_classes = (MultiPartParser, FormParser)
 
     @swagger_auto_schema(
         operation_description="특정 아이돌 데이터를 조회합니다.",
