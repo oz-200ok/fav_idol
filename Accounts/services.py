@@ -157,7 +157,7 @@ class EmailService:
         send_mail(
             subject,
             message,
-            settings.DEFAULT_FROM_EMAIL,
+            settings.EMAIL_SENDER,
             [user.email],
             fail_silently=False,
             html_message=message,
@@ -180,7 +180,7 @@ class EmailService:
         send_mail(
             subject,
             message,
-            settings.DEFAULT_FROM_EMAIL,
+            settings.EMAIL_SENDER,
             [user.email],
             fail_silently=False,
             html_message=message,
