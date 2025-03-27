@@ -88,11 +88,64 @@ class GroupListView(ListCreateAPIView):
     serializer_class = GroupSerializer
     permission_classes = [IsAdminOrReadOnly]
 
+    @swagger_auto_schema(
+        operation_description="그룹 목록을 가져옵니다.",
+        responses={
+            200: GroupSerializer(many=True),  # 그룹 목록 반환
+        },
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description="새 그룹을 생성합니다.",
+        request_body=GroupSerializer,  # 생성 시 필요한 데이터 스키마
+        responses={
+            201: GroupSerializer,  # 성공적으로 생성된 그룹 반환
+            400: "유효하지 않은 요청 데이터",
+        },
+    )
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
+
+
 
 class GroupDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Group.objects.select_related("agency")
     serializer_class = GroupSerializer
     permission_classes = [IsSuperUser]
+
+    @swagger_auto_schema(
+        operation_description="특정 그룹 데이터를 조회합니다.",
+        responses={
+            200: GroupSerializer,  # 그룹 데이터 반환
+            404: "그룹을 찾을 수 없습니다.",
+        },
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description="특정 그룹 데이터를 업데이트합니다.",
+        request_body=GroupSerializer,  # 업데이트 요청 데이터
+        responses={
+            200: GroupSerializer,  # 업데이트된 그룹 데이터 반환
+            400: "유효하지 않은 요청 데이터",
+        },
+    )
+    def put(self, request, *args, **kwargs):
+        return super().put(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description="특정 그룹 데이터를 삭제합니다.",
+        responses={
+            204: "그룹 삭제 성공",
+            404: "그룹을 찾을 수 없습니다.",
+        },
+    )
+    def delete(self, request, *args, **kwargs):
+        return super().delete(request, *args, **kwargs)
+
 
 
 # 아이돌 리스트
