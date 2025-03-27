@@ -51,6 +51,7 @@ class AgencyDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Agency.objects.all()
     serializer_class = AgencySerializer
     permission_classes = [IsSuperUser]
+    parser_classes = (MultiPartParser, FormParser)
 
     @swagger_auto_schema(
         operation_description="특정 소속사 데이터를 조회합니다.",
