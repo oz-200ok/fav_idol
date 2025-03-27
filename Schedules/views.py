@@ -8,7 +8,6 @@ from rest_framework.generics import (
 from rest_framework.response import Response
 
 from config.permissions import IsAdminOrReadOnly
-
 from Preferences.notification_service import NotificationService
 
 from .models import Schedule
@@ -54,9 +53,15 @@ class ScheduleDetailView(RetrieveUpdateDestroyAPIView):
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        "schedule.id": openapi.Schema(type=openapi.TYPE_INTEGER, description="일정 ID"),
-                        "group_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="그룹 ID"),
-                        "title": openapi.Schema(type=openapi.TYPE_STRING, description="일정 제목"),
+                        "schedule.id": openapi.Schema(
+                            type=openapi.TYPE_INTEGER, description="일정 ID"
+                        ),
+                        "group_id": openapi.Schema(
+                            type=openapi.TYPE_INTEGER, description="그룹 ID"
+                        ),
+                        "title": openapi.Schema(
+                            type=openapi.TYPE_STRING, description="일정 제목"
+                        ),
                     },
                 ),
             ),
@@ -83,8 +88,12 @@ class ScheduleDetailView(RetrieveUpdateDestroyAPIView):
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        "group_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="그룹 ID"),
-                        "schedule_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="일정 ID"),
+                        "group_id": openapi.Schema(
+                            type=openapi.TYPE_INTEGER, description="그룹 ID"
+                        ),
+                        "schedule_id": openapi.Schema(
+                            type=openapi.TYPE_INTEGER, description="일정 ID"
+                        ),
                     },
                 ),
             ),
@@ -93,8 +102,12 @@ class ScheduleDetailView(RetrieveUpdateDestroyAPIView):
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        "group_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="그룹 ID"),
-                        "schedule_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="일정 ID"),
+                        "group_id": openapi.Schema(
+                            type=openapi.TYPE_INTEGER, description="그룹 ID"
+                        ),
+                        "schedule_id": openapi.Schema(
+                            type=openapi.TYPE_INTEGER, description="일정 ID"
+                        ),
                     },
                 ),
             ),
@@ -116,8 +129,12 @@ class ScheduleDetailView(RetrieveUpdateDestroyAPIView):
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        "group_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="그룹 ID"),
-                        "schedule_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="일정 ID"),
+                        "group_id": openapi.Schema(
+                            type=openapi.TYPE_INTEGER, description="그룹 ID"
+                        ),
+                        "schedule_id": openapi.Schema(
+                            type=openapi.TYPE_INTEGER, description="일정 ID"
+                        ),
                     },
                 ),
             ),
