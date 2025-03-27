@@ -1,10 +1,8 @@
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
-
 
 from .serializers import (
     CheckDuplicateSerializer,
@@ -114,8 +112,20 @@ class VerifyEmailView(generics.RetrieveAPIView):
 
     @swagger_auto_schema(
         manual_parameters=[
-            openapi.Parameter('token', in_=openapi.IN_QUERY, type=openapi.TYPE_STRING, required=True, description="이메일 인증 토큰"),
-            openapi.Parameter('email', in_=openapi.IN_QUERY, type=openapi.TYPE_STRING, required=True, description="사용자 이메일"),
+            openapi.Parameter(
+                "token",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_STRING,
+                required=True,
+                description="이메일 인증 토큰",
+            ),
+            openapi.Parameter(
+                "email",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_STRING,
+                required=True,
+                description="사용자 이메일",
+            ),
         ]
     )
     def get(self, request, *args, **kwargs):
@@ -207,8 +217,20 @@ class CheckDuplicateView(generics.GenericAPIView):
 
     @swagger_auto_schema(
         manual_parameters=[
-            openapi.Parameter('type', in_=openapi.IN_QUERY, type=openapi.TYPE_STRING, required=True, description="확인할 항목 (username, email, phone)"),
-            openapi.Parameter('value', in_=openapi.IN_QUERY, type=openapi.TYPE_STRING, required=True, description="확인할 값"),
+            openapi.Parameter(
+                "type",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_STRING,
+                required=True,
+                description="확인할 항목 (username, email, phone)",
+            ),
+            openapi.Parameter(
+                "value",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_STRING,
+                required=True,
+                description="확인할 값",
+            ),
         ]
     )
     def get(self, request, *args, **kwargs):
