@@ -109,3 +109,23 @@ class IdolSerializer(serializers.ModelSerializer):
                 "같은 그룹에 동일한 이름의 아이돌이 존재합니다."
             )
         return data
+
+    def create(self, validated_data):
+        image_file = validated_data.pop('image_file', None)
+        instance = super().create(validated_data)
+        if image_file:
+            image_url = upload_image_to_s3(image_file, 'idols', instance.id)
+            if image_url:
+                instance.image = image_url
+                instance.save()
+        return instance
+
+    def update(self, instance, validated_data):
+        image_file = validated_data.pop('image_file', None)
+        instance = super().update(instance, validated_data)
+        if image_file:
+            image_url = upload_image_to_s3(image_file, 'idols', instance.id)
+            if image_url:
+                instance.image = image_url
+                instance.save()
+        return instance
