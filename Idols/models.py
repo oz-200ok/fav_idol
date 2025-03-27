@@ -1,21 +1,29 @@
+from django.core.validators import RegexValidator
 from django.db import models
 
 
 class Agency(models.Model):
     name = models.CharField(max_length=20)  # null 불가, 공백 불가
     contact = models.CharField(max_length=50, null=True)
-    image = models.CharField(max_length=255, null=True, blank=True)
+    image = models.URLField(max_length=500, null=True)
 
     def __str__(self):
         return self.name
 
 
 class Group(models.Model):
-    agency = models.ForeignKey(Agency, on_delete=models.CASCADE)
-    name = models.CharField(max_length=20)
-    sns = models.CharField(max_length=50, null=True)
-    color = models.CharField(max_length=10)
-    image = models.CharField(max_length=255, null=True, blank=True)
+    name = models.CharField(max_length=100, unique=True)  # 그룹 이름
+    agency = models.ForeignKey(Agency, on_delete=models.CASCADE)  # 소속사
+    color = models.CharField(
+        max_length=7,
+        validators=[
+            RegexValidator(
+                regex="^#[0-9A-Fa-f]{6}$", message="유효한 HEX 색상을 입력하세요."
+            )
+        ],
+    )
+    sns = models.URLField(blank=True, null=True)  # SNS 링크
+    image = models.URLField(max_length=500, null=True)  # 그룹 이미지
 
     def __str__(self):
         return f"{self.name} ({self.agency.name})"
@@ -24,7 +32,7 @@ class Group(models.Model):
 class Idol(models.Model):
     group = models.ForeignKey(Group, on_delete=models.CASCADE)
     name = models.CharField(max_length=10)
-    image = models.CharField(max_length=255, null=True, blank=True)
+    image = models.URLField(max_length=500, null=True)
 
     def __str__(self):
         return f"{self.name} ({self.group.name})"

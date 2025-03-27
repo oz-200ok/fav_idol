@@ -212,12 +212,13 @@ JWT_EXPIRES_IN = int(os.getenv("JWT_EXPIRES_IN", 86400))
 
 # 이메일 설정
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.naver.com"
+EMAIL_HOST = "smtp-relay.brevo.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_SENDER = "rubyhae@gmail.com"
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
-DEFAULT_FROM_EMAIL = f"ILOG <{EMAIL_HOST_USER}>"
+DEFAULT_FROM_EMAIL = f"ILOG <rubyhae@gmail.com>"
 
 FRONTEND_URL = os.getenv("FRONTEND_URL")
 
@@ -259,3 +260,8 @@ LOGGING = {
         },
     },
 }
+
+AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")
+AWS_REGION_NAME = os.getenv("AWS_REGION_NAME")

@@ -1,4 +1,4 @@
-from rest_framework.permissions import BasePermission
+from rest_framework.permissions import SAFE_METHODS, BasePermission
 
 
 class IsAdminOrReadOnly(BasePermission):
@@ -7,7 +7,7 @@ class IsAdminOrReadOnly(BasePermission):
     """
 
     def has_permission(self, request, view):
-        if request.method in ["GET"]:
+        if request.method in SAFE_METHODS:
             return True  # 모두 읽기 허용
         return request.user and request.user.is_staff
 

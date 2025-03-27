@@ -1,3 +1,5 @@
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -108,7 +110,25 @@ class VerifyEmailView(generics.RetrieveAPIView):
     def get_object(self):
         return None
 
-    def retrieve(self, request, *args, **kwargs):
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                "token",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_STRING,
+                required=True,
+                description="이메일 인증 토큰",
+            ),
+            openapi.Parameter(
+                "email",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_STRING,
+                required=True,
+                description="사용자 이메일",
+            ),
+        ]
+    )
+    def get(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
         return custom_response(serializer.validated_data["data"])
@@ -195,6 +215,24 @@ class UserProfileUpdateView(generics.UpdateAPIView):
 class CheckDuplicateView(generics.GenericAPIView):
     serializer_class = CheckDuplicateSerializer
 
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                "type",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_STRING,
+                required=True,
+                description="확인할 항목 (username, email, phone)",
+            ),
+            openapi.Parameter(
+                "value",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_STRING,
+                required=True,
+                description="확인할 값",
+            ),
+        ]
+    )
     def get(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
