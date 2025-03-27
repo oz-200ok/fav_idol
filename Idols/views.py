@@ -155,6 +155,7 @@ class IdolListView(ListCreateAPIView):
     queryset = Idol.objects.select_related("group")
     serializer_class = IdolSerializer
     permission_classes = [IsAdminOrReadOnly]
+    parser_classes = (MultiPartParser, FormParser)
 
     @swagger_auto_schema(
         operation_description="아이돌 목록을 가져옵니다.",
@@ -180,6 +181,7 @@ class IdolListView(ListCreateAPIView):
 class IdolDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Idol.objects.select_related("group")
     serializer_class = IdolSerializer
+    parser_classes = (MultiPartParser, FormParser)
 
     @swagger_auto_schema(
         operation_description="특정 아이돌 데이터를 조회합니다.",
