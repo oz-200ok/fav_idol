@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from Idols.s3_utils import upload_image_to_s3
+
 from .models import Agency, Group, Idol
 
 
@@ -14,6 +16,26 @@ class AgencySerializer(serializers.ModelSerializer):
         if Agency.objects.filter(name__iexact=value).exists():
             raise serializers.ValidationError("같은 이름의 소속사가 존재합니다.")
         return value
+    
+    def create(self, validated_data):
+        image_file = validated_data.pop('image_file', None)
+        instance = super().create(validated_data)
+        if image_file:
+            image_url = upload_image_to_s3(image_file, 'agencies', instance.id)
+            if image_url:
+                instance.image = image_url
+                instance.save()
+        return instance
+
+    def update(self, instance, validated_data):
+        image_file = validated_data.pop('image_file', None)
+        instance = super().update(instance, validated_data)
+        if image_file:
+            image_url = upload_image_to_s3(image_file, 'agencies', instance.id)
+            if image_url:
+                instance.image = image_url
+                instance.save()
+        return instance
 
 
 # Group Serializer
