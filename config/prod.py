@@ -6,7 +6,12 @@ ALLOWED_HOSTS = ["ilog.giize.com", "localhost"]
 MAIL_URL = "https://ilog.giize.com/ilog/account"
 
 # CORS 설정
-CORS_ALLOWED_ORIGINS = ["http://localhost:5173", "http://127.0.0.1:5173", "https://dev.i-log.p-e.kr", "https://i-log.p-e.kr"]
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://dev.i-log.p-e.kr",
+    "https://i-log.p-e.kr",
+]
 CORS_ALLOW_CREDENTIALS = True
 
 # CSRF 설정

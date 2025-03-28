@@ -32,7 +32,6 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -217,6 +216,7 @@ AWS_REGION_NAME = os.getenv("AWS_REGION_NAME")
 
 try:
     from . import logging
+
     LOGGING = logging.LOGGING
 except ImportError:
     pass
