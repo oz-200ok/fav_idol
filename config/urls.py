@@ -15,22 +15,12 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
+from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
-
-schema_view = get_schema_view(
-    openapi.Info(
-        title="I-LOG API",
-        default_version="v1",
-        description="아이돌 스케줄 관리 API 문서",
-        contact=openapi.Contact(email="contact@example.com"),
-    ),
-    public=True,
-    permission_classes=(permissions.AllowAny,),
-)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -39,11 +29,24 @@ urlpatterns = [
     path("ilog/idol/", include("Idols.urls")),
     path("ilog/service/", include("Preferences.urls")),
     path("ilog/accounts/", include("allauth.urls")),
-    # Swagger 문서 URL 추가
-    path(
-        "swagger/",
-        schema_view.with_ui("swagger", cache_timeout=0),
-        name="schema-swagger-ui",
-    ),
-    path("redoc/", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"),
 ]
+
+if settings.DEBUG:
+    schema_view = get_schema_view(
+        openapi.Info(
+            title="I-LOG API",
+            default_version="v1",
+            description="아이돌 스케줄 관리 API 문서",
+            contact=openapi.Contact(email="contact@example.com"),
+        ),
+        public=True,
+        permission_classes=(permissions.AllowAny,),
+    )
+
+    urlpatterns += [
+        path(
+            "swagger/",
+            schema_view.with_ui("swagger", cache_timeout=0),
+            name="schema-swagger-ui",
+        ),
+    ]
