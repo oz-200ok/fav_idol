@@ -31,10 +31,7 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
-if os.getenv("ENVIRONMENT") == "prod":
-    from .prod import *
-else:
-    from .dev import *
+
 
 # Application definition
 
@@ -261,3 +258,8 @@ AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
 AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")
 AWS_REGION_NAME = os.getenv("AWS_REGION_NAME")
+
+if os.getenv("ENVIRONMENT") == "prod":
+    from .prod import *
+else:
+    from .dev import *
