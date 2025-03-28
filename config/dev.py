@@ -2,8 +2,8 @@
 DEBUG = True
 ALLOWED_HOSTS = ["*"]
 
-# Frontend URL
-FRONTEND_URL = "http://127.0.0.1:8000/ilog/account"
+# 메일 URL
+MAIL_URL = "http://127.0.0.1:8000/ilog/account"
 
 # CORS 설정
 CORS_ALLOWED_ORIGINS = ["http://localhost:8000"]

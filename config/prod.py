@@ -2,8 +2,8 @@
 DEBUG = False
 ALLOWED_HOSTS = ["ilog.giize.com", "localhost"]
 
-# Frontend URL
-FRONTEND_URL = "http://100.26.111.172/ilog/account"
+# 메일 URL
+MAIL_URL = "https://ilog.giize.com/ilog/account"
 
 # CORS 설정
 CORS_ALLOWED_ORIGINS = ["http://localhost:5173", "http://127.0.0.1:5173", "https://dev.i-log.p-e.kr", "https://i-log.p-e.kr"]
