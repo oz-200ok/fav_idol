@@ -145,7 +145,7 @@ class EmailService:
     def send_verification_email(user):
         token = default_token_generator.make_token(user)
         verification_url = (
-            f"{settings.FRONTEND_URL}/verify-email?token={token}&email={user.email}"
+            f"{settings.MAIL_URL}/verify-email?token={token}&email={user.email}"
         )
 
         subject = "ILOG 회원가입 인증 메일입니다."
@@ -169,7 +169,7 @@ class EmailService:
     def send_password_reset_email(user):
         token = default_token_generator.make_token(user)
         reset_url = (
-            f"{settings.FRONTEND_URL}/reset-password?token={token}&email={user.email}"
+            f"{settings.MAIL_URL}/reset-password?token={token}&email={user.email}"
         )
 
         subject = "ILOG 비밀번호 재설정 안내"
