@@ -49,7 +49,6 @@ INSTALLED_APPS = [
     "allauth.socialaccount.providers.naver",
     "allauth.socialaccount.providers.kakao",
     "rest_framework",
-    "drf_yasg",
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
@@ -175,13 +174,6 @@ SIMPLE_JWT = {
     "TOKEN_TYPE_CLAIM": "token_type",
 }
 
-SWAGGER_SETTINGS = {
-    "SECURITY_DEFINITIONS": {
-        "Bearer": {"type": "apiKey", "name": "Authorization", "in": "header"}
-    },
-    "USE_SESSION_AUTH": False,
-}
-
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
@@ -232,4 +224,5 @@ except ImportError:
 if os.getenv("ENVIRONMENT") == "prod":
     from .prod import *
 else:
+    INSTALLED_APPS += ["drf_yasg"]
     from .dev import *
