@@ -30,10 +30,11 @@ load_dotenv(os.path.join(BASE_DIR, ".env"))
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DJANGO_DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
-
+if os.getenv("ENVIRONMENT") == "prod":
+    from .prod import *
+else:
+    from .dev import *
 
 # Application definition
 
@@ -208,7 +209,7 @@ KAKAO_CLIENT_SECRET = os.getenv("KAKAO_CLIENT_SECRET")
 KAKAO_CALLBACK_URL = os.getenv("KAKAO_CALLBACK_URL")
 
 # JWT 설정
-JWT_EXPIRES_IN = int(os.getenv("JWT_EXPIRES_IN", 86400))
+JWT_EXPIRES_IN = 86400
 
 # 이메일 설정
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
@@ -219,11 +220,6 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_SENDER = "rubyhae@gmail.com"
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = f"ILOG <rubyhae@gmail.com>"
-
-FRONTEND_URL = os.getenv("FRONTEND_URL")
-
-CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS").split(",")
-CORS_ALLOW_CREDENTIALS = True
 
 LOGGING = {
     "version": 1,
@@ -265,5 +261,3 @@ AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
 AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")
 AWS_REGION_NAME = os.getenv("AWS_REGION_NAME")
-
-CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
