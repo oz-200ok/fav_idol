@@ -3,6 +3,7 @@ from django.urls import reverse
 
 
 class TestViewExceptions(TestCase):
+    @override_settings(ROOT_URLCONF='config.urls')
     def setUp(self):
         self.client = Client()
 
