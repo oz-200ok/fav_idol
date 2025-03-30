@@ -12,7 +12,7 @@ class GroupInline(admin.TabularInline):
 
 @admin.register(Agency)
 class AgencyAdmin(admin.ModelAdmin):
-    list_display = ("name", "contact", "image_preview")
+    list_display = ("id", "name", "contact", "image_preview")
 
     def image_preview(self, obj):
         if obj.image:  # image_url이 존재할 경우에만 표시
@@ -25,7 +25,7 @@ class AgencyAdmin(admin.ModelAdmin):
 
 @admin.register(Group)
 class GroupAdmin(admin.ModelAdmin):
-    list_display = ("name", "agency", "image_preview")
+    list_display = ("id", "name", "agency", "image_preview")
 
     def image_preview(self, obj):
         if obj.image:  # image_url이 존재할 경우에만 표시
@@ -42,6 +42,6 @@ class IdolInline(admin.TabularInline):
 
 @admin.register(Idol)
 class IdolAdmin(admin.ModelAdmin):
-    list_display = ("name", "group")
+    list_display = ("id", "name", "group")
     search_fields = ("name",)
     list_filter = ("group",)
