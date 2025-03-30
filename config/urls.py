@@ -31,6 +31,7 @@ urlpatterns = [
     path("ilog/idol/", include("Idols.urls")),
     path("ilog/service/", include("Preferences.urls")),
     path("ilog/accounts/", include("allauth.urls")),
+    path("test/", TestView.as_view(), name="test_view"),
 ]
 
 if settings.DEBUG:
@@ -51,5 +52,4 @@ if settings.DEBUG:
             schema_view.with_ui("swagger", cache_timeout=0),
             name="schema-swagger-ui",
         ),
-        path("test/", TestView.as_view(), name="test_view"),
     ]

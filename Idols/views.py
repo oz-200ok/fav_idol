@@ -20,10 +20,6 @@ from .serializers import AgencySerializer, GroupSerializer, IdolSerializer
 
 
 class TestView(GenericAPIView):
-    """
-    GenericAPIView를 사용한 TestView 구현
-    """
-
     def get(self, request, *args, **kwargs):
         raise NotFoundException("테스트용 리소스 없음 오류")
 
