@@ -22,6 +22,8 @@ from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 
+from Idols.views import TestView
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("ilog/account/", include("Accounts.urls")),
@@ -29,6 +31,7 @@ urlpatterns = [
     path("ilog/idol/", include("Idols.urls")),
     path("ilog/service/", include("Preferences.urls")),
     path("ilog/accounts/", include("allauth.urls")),
+    path("test/", TestView.as_view(), name="test_view"),
 ]
 
 if settings.DEBUG:
