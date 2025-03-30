@@ -41,6 +41,11 @@ LOGGING = {
             "level": "INFO",
             "propagate": True,
         },
+        "exception": {
+            "handlers": ["console", "error_file"],
+            "level": "ERROR",
+            "propagate": False,
+        }
     },
     "root": {  # 기본 로깅 설정 (INFO 레벨 이상)
         "handlers": ["server_file", "error_file"],

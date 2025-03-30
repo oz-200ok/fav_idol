@@ -3,17 +3,7 @@ from rest_framework.views import exception_handler
 
 import logging
 
-def custom_exception_handler(exc, context):
-    response = exception_handler(exc, context)
-
-    if response is not None:
-        response.data = {
-            "error_code": getattr(exc, "default_code", "error"),
-            "error_message": str(exc.detail),
-            "status_code": response.status_code,
-        }
-
-    return response
+logger=logging.getLogger("exception")
 
 class CustomAPIException(APIException):
     status_code = 400
@@ -32,7 +22,7 @@ class CustomAPIException(APIException):
             self.default_code = code
 
         # 예외 발생 시 로깅
-        self.logger.error(f"CustomAPIException: {self.default_code} - {self.detail}")
+        logger.error(f"CustomAPIException: {self.default_code} - {self.detail}")
 
 class NotFoundException(CustomAPIException):
     status_code = 404
