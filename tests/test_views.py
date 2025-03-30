@@ -3,7 +3,7 @@ from django.urls import reverse
 
 
 class TestViewExceptions(TestCase):
-    @override_settings(ROOT_URLCONF='config.urls')
+    @override_settings(ROOT_URLCONF="config.urls")
     def test_not_found_exception(self):
         # 뷰 호출
         response = self.client.get(reverse("test_view"))
