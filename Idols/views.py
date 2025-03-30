@@ -3,6 +3,7 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.generics import (
+    GenericAPIView,
     ListCreateAPIView,
     RetrieveUpdateDestroyAPIView,
     get_object_or_404,
@@ -11,10 +12,20 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from config.base_exception import NotFoundException
 from config.permissions import IsAdminOrReadOnly, IsSuperUser
 
 from .models import Agency, Group, Idol
 from .serializers import AgencySerializer, GroupSerializer, IdolSerializer
+
+
+class TestView(GenericAPIView):
+    """
+    GenericAPIView를 사용한 TestView 구현
+    """
+
+    def get(self, request, *args, **kwargs):
+        raise NotFoundException("테스트용 리소스 없음 오류")
 
 
 # 에이전시 리스트

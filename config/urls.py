@@ -22,6 +22,8 @@ from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 
+from Idols.views import TestView
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("ilog/account/", include("Accounts.urls")),
@@ -49,4 +51,5 @@ if settings.DEBUG:
             schema_view.with_ui("swagger", cache_timeout=0),
             name="schema-swagger-ui",
         ),
+        path("test/", TestView.as_view(), name="test_view"),
     ]
