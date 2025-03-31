@@ -27,6 +27,7 @@ class Group(models.Model):
             )
         ],
         null=True,
+        blank=True,
     )
     sns = models.URLField(blank=True, null=True)  # SNS 링크
     image = models.URLField(max_length=500, null=True, blank=True)  # 그룹 이미지
