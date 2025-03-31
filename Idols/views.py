@@ -37,7 +37,8 @@ class AgencyListView(ListCreateAPIView):
         responses={200: AgencySerializer(many=True)},  # 목록 반환
     )
     def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
+        response = super().get(request, *args, **kwargs)
+        return Response({"data": response.data}, status=response.status_code)
 
     @swagger_auto_schema(
         operation_description="새 소속사를 생성합니다.",
@@ -47,7 +48,8 @@ class AgencyListView(ListCreateAPIView):
         },
     )
     def post(self, request, *args, **kwargs):
-        return super().post(request, *args, **kwargs)
+        response = super().post(request, *args, **kwargs)
+        return Response({"data": response.data}, status=response.status_code)
 
     def get_permissions(self):
         if self.request.method == "GET":
@@ -66,7 +68,8 @@ class AgencyDetailView(RetrieveUpdateDestroyAPIView):
         responses={200: AgencySerializer},  # 성공 시 반환할 데이터 스키마
     )
     def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
+        response = super().get(request, *args, **kwargs)
+        return Response({"data": response.data}, status=response.status_code)
 
     @swagger_auto_schema(
         operation_description="특정 소속사 데이터를 업데이트합니다.",
@@ -77,7 +80,8 @@ class AgencyDetailView(RetrieveUpdateDestroyAPIView):
         },
     )
     def put(self, request, *args, **kwargs):
-        return super().put(request, *args, **kwargs)
+        response = super().put(request, *args, **kwargs)
+        return Response({"data": response.data}, status=response.status_code)
 
     @swagger_auto_schema(
         operation_description="특정 소속사 데이터를 삭제합니다.",
@@ -87,7 +91,8 @@ class AgencyDetailView(RetrieveUpdateDestroyAPIView):
         },
     )
     def delete(self, request, *args, **kwargs):
-        return super().delete(request, *args, **kwargs)
+        response = super().delete(request, *args, **kwargs)
+        return Response({"data": "소속사 삭제 성공"}, status=response.status_code)
 
 
 # 그룹 리스트
@@ -106,7 +111,8 @@ class GroupListView(ListCreateAPIView):
         },
     )
     def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
+        response = super().get(request, *args, **kwargs)
+        return Response({"data": response.data}, status=response.status_code)
 
     @swagger_auto_schema(
         operation_description="새 그룹을 생성합니다.",
@@ -117,7 +123,8 @@ class GroupListView(ListCreateAPIView):
         },
     )
     def post(self, request, *args, **kwargs):
-        return super().post(request, *args, **kwargs)
+        response = super().post(request, *args, **kwargs)
+        return Response({"data": response.data}, status=response.status_code)
 
 
 class GroupByNameView(ListAPIView):
@@ -143,7 +150,8 @@ class GroupDetailView(RetrieveUpdateDestroyAPIView):
         },
     )
     def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
+        response = super().get(request, *args, **kwargs)
+        return Response({"data": response.data}, status=response.status_code)
 
     @swagger_auto_schema(
         operation_description="특정 그룹 데이터를 업데이트합니다.",
@@ -154,7 +162,8 @@ class GroupDetailView(RetrieveUpdateDestroyAPIView):
         },
     )
     def put(self, request, *args, **kwargs):
-        return super().put(request, *args, **kwargs)
+        response = super().put(request, *args, **kwargs)
+        return Response({"data": response.data}, status=response.status_code)
 
     @swagger_auto_schema(
         operation_description="특정 그룹 데이터를 삭제합니다.",
@@ -164,7 +173,8 @@ class GroupDetailView(RetrieveUpdateDestroyAPIView):
         },
     )
     def delete(self, request, *args, **kwargs):
-        return super().delete(request, *args, **kwargs)
+        response = super().delete(request, *args, **kwargs)
+        return Response({"data": "그룹 삭제 성공"}, status=response.status_code)
 
 
 # 아이돌 리스트
@@ -181,7 +191,8 @@ class IdolListView(ListCreateAPIView):
         },
     )
     def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
+        response = super().get(request, *args, **kwargs)
+        return Response({"data": response.data}, status=response.status_code)
 
     @swagger_auto_schema(
         operation_description="개별 아이돌을 생성합니다.",
@@ -192,7 +203,8 @@ class IdolListView(ListCreateAPIView):
         },
     )
     def post(self, request, *args, **kwargs):
-        return super().post(request, *args, **kwargs)
+        response = super().post(request, *args, **kwargs)
+        return Response({"data": response.data}, status=response.status_code)
 
 
 class IdolDetailView(RetrieveUpdateDestroyAPIView):
@@ -208,7 +220,8 @@ class IdolDetailView(RetrieveUpdateDestroyAPIView):
         },
     )
     def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
+        response = super().get(request, *args, **kwargs)
+        return Response({"data": response.data}, status=response.status_code)
 
     @swagger_auto_schema(
         operation_description="특정 아이돌 데이터를 업데이트합니다.",
@@ -219,7 +232,8 @@ class IdolDetailView(RetrieveUpdateDestroyAPIView):
         },
     )
     def put(self, request, *args, **kwargs):
-        return super().put(request, *args, **kwargs)
+        response = super().put(request, *args, **kwargs)
+        return Response({"data": response.data}, status=response.status_code)
 
     @swagger_auto_schema(
         operation_description="특정 아이돌 데이터를 삭제합니다.",
@@ -247,8 +261,4 @@ class IdolDetailView(RetrieveUpdateDestroyAPIView):
             "name": instance.name,
         }
         self.perform_destroy(instance)
-
-        return Response(
-            {"data": deleted_idol_data},
-            status=status.HTTP_200_OK,
-        )
+        return Response({"data": deleted_idol_data}, status=status.HTTP_200_OK)
