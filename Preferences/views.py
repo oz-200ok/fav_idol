@@ -1,17 +1,15 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
+from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
+from Schedules.models import Schedule
+from Schedules.serializer import ScheduleSerializer
 
 from .models import UserGroupSubscribe
 from .serializers import SubscribeResponseSerializer, SubscribeSerializer
 from .services import SubscriptionService
-from .models import UserGroupSubscribe
-from Schedules.serializer import ScheduleSerializer
-from Schedules.models import Schedule
-from rest_framework.generics import ListAPIView, RetrieveAPIView
-from django.shortcuts import get_object_or_404
-
-
 
 
 class SubscribeViewSet(viewsets.GenericViewSet):
@@ -70,10 +68,12 @@ class SubscribeViewSet(viewsets.GenericViewSet):
             return self.custom_response(status=status.HTTP_204_NO_CONTENT)
         return self.custom_response(status=status.HTTP_404_NOT_FOUND)
 
+
 class UserSubscribedSchedulesView(ListAPIView):
     """
     사용자가 구독한 그룹의 일정 목록 조회
     """
+
     serializer_class = ScheduleSerializer
     permission_classes = [IsAuthenticated]
 
@@ -81,31 +81,34 @@ class UserSubscribedSchedulesView(ListAPIView):
         # 사용자가 구독한 그룹 ID 목록 조회
         subscribed_group_ids = UserGroupSubscribe.objects.filter(
             user=self.request.user
-        ).values_list('group_id', flat=True)
-        
+        ).values_list("group_id", flat=True)
+
         # 구독한 그룹의 일정 조회
-        return Schedule.objects.filter(
-            group_id__in=subscribed_group_ids
-        ).prefetch_related('participating_members').order_by('start_time')
-    
+        return (
+            Schedule.objects.filter(group_id__in=subscribed_group_ids)
+            .prefetch_related("participating_members")
+            .order_by("start_time")
+        )
+
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
         return Response({"data": serializer.data}, status=status.HTTP_200_OK)
-    
+
+
 class UserScheduleDetailView(RetrieveAPIView):
     """
     사용자가 특정 일정을 상세 조회
     """
+
     serializer_class = ScheduleSerializer
     permission_classes = [IsAuthenticated]
-    
+
     def get_object(self):
-        schedule_id = self.kwargs.get('schedule_id')
+        schedule_id = self.kwargs.get("schedule_id")
         return get_object_or_404(Schedule, id=schedule_id)
-    
+
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
         return Response({"data": serializer.data}, status=status.HTTP_200_OK)
-    
