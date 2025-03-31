@@ -8,7 +8,9 @@ from .services import SubscriptionService
 from .models import UserGroupSubscribe
 from Schedules.serializer import ScheduleSerializer
 from Schedules.models import Schedule
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListAPIView, RetrieveAPIView
+from django.shortcuts import get_object_or_404
+
 
 
 
@@ -83,4 +85,20 @@ class UserSubscribedSchedulesView(ListAPIView):
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
+        return Response({"data": serializer.data}, status=status.HTTP_200_OK)
+    
+class UserScheduleDetailView(RetrieveAPIView):
+    """
+    사용자가 특정 일정을 상세 조회
+    """
+    serializer_class = ScheduleSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_object(self):
+        schedule_id = self.kwargs.get('schedule_id')
+        return get_object_or_404(Schedule, id=schedule_id)
+    
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
         return Response({"data": serializer.data}, status=status.HTTP_200_OK)
