@@ -3,7 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .models import UserGroupSubscribe
-from .serializers import NotificationSettingsSerializer, SubscribeResponseSerializer, SubscribeSerializer
+from .serializers import SubscribeResponseSerializer, SubscribeSerializer
 from .services import SubscriptionService
 from .models import UserGroupSubscribe
 from Schedules.serializer import ScheduleSerializer
@@ -33,13 +33,17 @@ class SubscribeViewSet(viewsets.GenericViewSet):
         return Response({"data": data}, status=status)
 
     def list(self, request):
-        # 사용자의 구독 목록 조회
+        """
+        사용자의 구독 목록 조회
+        """
         subscriptions = SubscriptionService.get_user_subscriptions(request.user)
         serializer = self.get_serializer(subscriptions, many=True)
         return self.custom_response(serializer.data)
 
     def create(self, request):
-        # 그룹 구독 생성 또는 업데이트
+        """
+        그룹 구독 생성 또는 알림 수정
+        """
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -55,7 +59,9 @@ class SubscribeViewSet(viewsets.GenericViewSet):
         )
 
     def destroy(self, request, pk=None):
-        # 그룹 구독 취소
+        """
+        그룹 구독 취소
+        """
         success = SubscriptionService.unsubscribe_from_group(
             user=request.user, group_id=pk
         )
@@ -103,19 +109,3 @@ class UserScheduleDetailView(RetrieveAPIView):
         serializer = self.get_serializer(instance)
         return Response({"data": serializer.data}, status=status.HTTP_200_OK)
     
-class NotificationSettingsView(ListAPIView):
-    """
-    사용자의 모든 그룹 알림 설정 조회
-    """
-    permission_classes = [IsAuthenticated]
-    serializer_class = NotificationSettingsSerializer
-    
-    def get_queryset(self):
-        return UserGroupSubscribe.objects.filter(
-            user=self.request.user
-        ).select_related('group')
-    
-    def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        serializer = self.get_serializer(queryset, many=True)
-        return Response({"data": serializer.data}, status=status.HTTP_200_OK)
