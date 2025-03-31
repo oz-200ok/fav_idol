@@ -36,6 +36,7 @@ class IdolInline(admin.TabularInline):
     model = Idol
     extra = 0
 
+
 @admin.register(Idol)
 class IdolAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "group")
