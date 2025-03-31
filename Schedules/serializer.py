@@ -49,3 +49,13 @@ class ScheduleSerializer(serializers.ModelSerializer):
         if data["end_time"] <= data["start_time"]:
             raise serializers.ValidationError("end_time은 start_time 이후여야 합니다.")
         return data
+
+
+class MinimalScheduleSerializer(serializers.ModelSerializer):
+    # 관리 중인 그룹 일정 반환용 시리얼라이저
+    schedule_id = serializers.IntegerField(source="id")
+    group_id = serializers.IntegerField(source="group.id")
+
+    class Meta:
+        model = Schedule
+        fields = ["schedule_id", "group_id"]

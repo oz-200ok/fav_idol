@@ -4,6 +4,7 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.generics import (
     GenericAPIView,
+    ListAPIView,
     ListCreateAPIView,
     RetrieveUpdateDestroyAPIView,
     get_object_or_404,
@@ -117,6 +118,15 @@ class GroupListView(ListCreateAPIView):
     )
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
+
+
+class GroupByNameView(ListAPIView):
+    serializer_class = GroupSerializer
+
+    def get_queryset(self):
+        name = self.kwargs["name"]  # URL에서 'name' 변수 가져오기
+        # 특정 이름의 그룹 조회
+        return Group.objects.filter(name=name)
 
 
 class GroupDetailView(RetrieveUpdateDestroyAPIView):

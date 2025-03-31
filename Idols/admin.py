@@ -19,7 +19,7 @@ class AgencyAdmin(admin.ModelAdmin):
             return format_html('<img src="{}" style="max-width: 100px;" />', obj.image)
 
     search_fields = ("name",)
-    fields = ("name", "contact")
+    fields = ("id", "name", "contact")
     inlines = [GroupInline]
 
 
@@ -32,7 +32,7 @@ class GroupAdmin(admin.ModelAdmin):
             return format_html('<img src="{}" style="max-width: 100px;" />', obj.image)
 
     search_fields = ("name",)
-    fields = ("name", "agency")
+    fields = ("id", "name", "agency")
 
 
 class IdolInline(admin.TabularInline):

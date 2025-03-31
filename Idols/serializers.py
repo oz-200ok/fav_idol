@@ -11,7 +11,7 @@ class AgencySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Agency
-        fields = ["id", "name", "contact", "image", "image_file"]  # 필요한 필드 정의
+        fields = ["name", "contact", "image", "image_file"]  # 필요한 필드 정의
         read_only_fields = ["image"]  # image 필드는 읽기 전용으로 설정
 
     # 이름 중복 검증
@@ -46,6 +46,7 @@ class GroupSerializer(serializers.ModelSerializer):
     agency_name = serializers.CharField(
         source="agency.name", read_only=True
     )  # 관련 소속사 이름 추가 (읽기 전용)
+    idol_names = serializers.SerializerMethodField()
     member_count = serializers.IntegerField(read_only=True)  # 그룹 멤버 수 추가
     image_file = serializers.ImageField(write_only=True, required=False)
 
@@ -60,10 +61,15 @@ class GroupSerializer(serializers.ModelSerializer):
             "color",
             "image",
             "member_count",
+            "idol_names",
             "image_file",
         ]  # 사용 필드 정의
 
         read_only_fields = ["image"]  # image 필드는 읽기 전용으로 설정
+
+    def get_idol_names(self, obj):
+        # 해당 그룹에 속한 아이돌 이름 목록 반환
+        return Idol.objects.filter(group=obj).values_list("name", flat=True)
 
     # 이름 중복 검증
     def validate_name(self, value):
@@ -101,7 +107,7 @@ class IdolSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Idol
-        fields = ["id", "name", "group", "group_name", "image_file"]  # 사용 필드 정의
+        fields = ["name", "group", "group_name", "image_file"]  # 사용 필드 정의
         read_only_fields = ["image"]
 
     def validate(self, data):

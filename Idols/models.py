@@ -1,5 +1,6 @@
 from django.core.validators import RegexValidator
 from django.db import models
+from Accounts.models import User
 
 
 class Agency(models.Model):
@@ -13,6 +14,7 @@ class Agency(models.Model):
 
 class Group(models.Model):
     name = models.CharField(max_length=100, unique=True)  # 그룹 이름
+    manager = models.ForeignKey(User, on_delete=models.CASCADE, related_name="managed_groups", default=1)
     agency = models.ForeignKey(Agency, on_delete=models.CASCADE)  # 소속사
     color = models.CharField(
         max_length=7,
