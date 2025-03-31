@@ -22,10 +22,10 @@ class Group(models.Model):
             RegexValidator(
                 regex="^#[0-9A-Fa-f]{6}$", message="유효한 HEX 색상을 입력하세요."
             )
-        ],
+        ], null=True
     )
     sns = models.URLField(blank=True, null=True)  # SNS 링크
-    image = models.URLField(max_length=500, null=True)  # 그룹 이미지
+    image = models.URLField(max_length=500, null=True, blank=True)  # 그룹 이미지
 
     def __str__(self):
         return f"{self.name} ({self.agency.name})"
@@ -34,7 +34,7 @@ class Group(models.Model):
 class Idol(models.Model):
     group = models.ForeignKey(Group, on_delete=models.CASCADE)
     name = models.CharField(max_length=10)
-    image = models.URLField(max_length=500, null=True)
+    image = models.URLField(max_length=500, null=True, blank=True)
 
     def __str__(self):
         return f"{self.name} ({self.group.name})"

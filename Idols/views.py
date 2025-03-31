@@ -135,6 +135,12 @@ class GroupByNameView(ListAPIView):
         # 특정 이름의 그룹 조회
         return Group.objects.filter(name=name)
 
+    def list(self, request, *args, **kwargs):
+        # 기본 리스트 뷰 동작을 가져옴
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({"data": serializer.data}, status=200)
+
 
 class GroupDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Group.objects.select_related("agency")
