@@ -1,15 +1,62 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <title>ILOG 이메일 인증</title>
-</head>
-<body>
-    <h1>ILOG 회원가입을 환영합니다!</h1>
-    <p>안녕하세요, {{ user.name }}님!</p>
-    <p>아래 링크를 클릭하여 이메일 인증을 완료해주세요:</p>
-    <a href="{{ verification_url }}">이메일 인증하기</a>
-    <p>이 링크는 24시간 동안 유효합니다.</p>
-    <p>감사합니다.</p>
-    <p>ILOG 팀</p>
-</body>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body style="margin: 0; padding: 30px; font-family: 'Arial', sans-serif">
+    <div
+      style="
+        max-width: 600px;
+        margin: auto;
+        background-color: #ffffff;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 0 15px rgba(163, 163, 163, 0.2);
+      "
+    >
+      <div style="background-color: #6a5096; color: white; padding: 24px 30px">
+        <h2 style="margin: 0; font-size: 24px">💜 ILOG 가입을 환영합니다!</h2>
+      </div>
+      <div style="padding: 30px; color: #333">
+        <p style="font-size: 16px; line-height: 1.6">
+          안녕하세요, <strong>{{ user.name }}</strong>님! <br /><br />
+          ILOG 서비스를 이용해주셔서 감사합니다. 아래 버튼을 눌러 이메일 인증을
+          완료해주세요.
+        </p>
+        <div style="text-align: center; margin: 30px 0">
+          <a
+            href="{{ verification_url }}"
+            style="
+              background-color: #6a5096;
+              color: white;
+              padding: 12px 24px;
+              text-decoration: none;
+              border-radius: 8px;
+              display: inline-block;
+              font-weight: bold;
+            "
+          >
+            이메일 인증하기
+          </a>
+        </div>
+        <p style="font-size: 14px; color: #666">
+          ※ 이 링크는 24시간 동안만 유효합니다.
+        </p>
+      </div>
+      <div
+        style="
+          background-color: #e8d9fb;
+          padding: 20px 30px;
+          text-align: center;
+          font-size: 12px;
+          color: #444;
+        "
+      >
+        이 메일은 자동 발송된 메일입니다. <br />
+        궁금한 점이 있다면 언제든지 ILOG 고객센터로 문의해주세요.
+      </div>
+    </div>
+  </body>
 </html>
