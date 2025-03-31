@@ -31,11 +31,3 @@ class SubscribeResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserGroupSubscribe
         fields = ["id", "group_id", "group_name", "notification"]
-
-class NotificationSettingsSerializer(serializers.ModelSerializer):
-    group_id = serializers.IntegerField(source='group.id')
-    group_name = serializers.CharField(source='group.name')
-    
-    class Meta:
-        model = UserGroupSubscribe
-        fields = ['id', 'group_id', 'group_name', 'notification']
