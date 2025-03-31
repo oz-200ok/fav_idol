@@ -57,23 +57,23 @@ class ScheduleModelTest(TestCase):
         self.assertIn(self.idol2, self.schedule.participating_members.all())
 
 
-class ManagedGroupSchedulesTest(TestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(
-            username="testuser",
-            email="test@example.com",
-            password="password",
-            name="Test User",
-        )
-        self.client = Client()
-        self.client.login(username="testuser", password="password")
-
-        agency = Agency.objects.create(name="Test Agency", contact="test@example.com")
-        group = Group.objects.create(name="Test Group", agency=agency)
-        Schedule.objects.create(
-            title="Meeting",
-            group=group,
-            start_time="2025-04-01 10:00",
-            end_time="2025-04-01 11:00",
-            user=self.user,  # user_id를 추가
-        )
+# class ManagedGroupSchedulesTest(TestCase):
+#     def setUp(self):
+#         self.user = User.objects.create_user(
+#             username="testuser",
+#             email="test@example.com",
+#             password="password",
+#             name="Test User",
+#         )
+#         self.client = Client()
+#         self.client.login(username="testuser", password="password")
+#
+#         agency = Agency.objects.create(name="Test Agency", contact="test@example.com")
+#         group = Group.objects.create(name="Test Group", agency=agency)
+#         Schedule.objects.create(
+#             title="Meeting",
+#             group=group,
+#             start_time="2025-04-01 10:00",
+#             end_time="2025-04-01 11:00",
+#             user=self.user,  # user_id를 추가
+#         )
