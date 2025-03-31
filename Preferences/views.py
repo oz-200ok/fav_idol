@@ -3,7 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .models import UserGroupSubscribe
-from .serializers import SubscribeResponseSerializer, SubscribeSerializer
+from .serializers import NotificationSettingsSerializer, SubscribeResponseSerializer, SubscribeSerializer
 from .services import SubscriptionService
 from .models import UserGroupSubscribe
 from Schedules.serializer import ScheduleSerializer
@@ -101,4 +101,21 @@ class UserScheduleDetailView(RetrieveAPIView):
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
+        return Response({"data": serializer.data}, status=status.HTTP_200_OK)
+    
+class NotificationSettingsView(ListAPIView):
+    """
+    사용자의 모든 그룹 알림 설정 조회
+    """
+    permission_classes = [IsAuthenticated]
+    serializer_class = NotificationSettingsSerializer
+    
+    def get_queryset(self):
+        return UserGroupSubscribe.objects.filter(
+            user=self.request.user
+        ).select_related('group')
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
         return Response({"data": serializer.data}, status=status.HTTP_200_OK)
