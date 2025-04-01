@@ -33,7 +33,6 @@ class ScheduleSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("User context is missing.")
 
         participating_members = validated_data.pop("participating_member_ids", [])
-        validated_data["user"] = request.user  # 사용자 설정
         schedule = Schedule.objects.create(**validated_data)
         schedule.participating_members.set(
             participating_members
@@ -52,7 +51,7 @@ class ScheduleSerializer(serializers.ModelSerializer):
 
 
 class MinimalScheduleSerializer(serializers.ModelSerializer):
-    # 관리 중인 그룹 일정 반환용 시리얼라이저
+    # 일정 ID와 그룹 ID만 반환하는 간소화된 시리얼라이저
     schedule_id = serializers.IntegerField(source="id")
     group_id = serializers.IntegerField(source="group.id")
 

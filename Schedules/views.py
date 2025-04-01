@@ -32,12 +32,10 @@ class ScheduleListView(ListCreateAPIView):
         return {"data": context}
 
     def perform_create(self, serializer):
-        # 일정 생성
-        schedule = serializer.save()
-        manager = group.manager
-        serializer.save(manager=manager)
-        # 일정 생성 후 알림 발송 (비동기적으로 처리됨)
-        NotificationService.notify_schedule_creation(schedule)
+        # 작성자를 자동으로 현재 사용자로 설정
+        serializer.save(user=self.request.user)
+        # 일정 생성 후 알림 발송
+        NotificationService.notify_schedule_creation(serializer.instance)
 
 
 class ScheduleDetailView(RetrieveUpdateDestroyAPIView):
