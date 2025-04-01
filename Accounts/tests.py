@@ -1,10 +1,10 @@
-from django.contrib.auth import get_user_model
-from django.urls import reverse
 from unittest.mock import patch
+
+from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import default_token_generator
+from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
-from django.contrib.auth.tokens import default_token_generator
-
 
 # Django's 기본 User 모델 가져오기
 User = get_user_model()
@@ -42,6 +42,7 @@ class TestUserData:
     }
     WRONG_PASSWORD = "WrongPassword!"
     INVALID_TOKEN = "invalidtoken123"
+
 
 class AccountAPITests(APITestCase):
     """
@@ -135,7 +136,7 @@ class AccountAPITests(APITestCase):
         self.assertIn("유효하지 않은 인증 토큰", str(response.data))
         user.refresh_from_db()
         self.assertFalse(user.is_active)
-        
+
     # ==============================
     # 로그인 (Login) 테스트
     # ==============================
@@ -336,7 +337,6 @@ class AccountAPITests(APITestCase):
         url = reverse("check-duplicate") + "?type=invalidtype&value=somevalue"
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
 
     # ==============================
     # 이메일 찾기 (Find Email) 테스트
