@@ -389,3 +389,40 @@ class AccountAPITests(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("입력하신 이메일로 등록된 계정이 없습니다", str(response.data))
+
+    # ==============================
+    # 비밀번호 재설정 (Reset Password) 테스트
+    # ==============================
+    def test_reset_password_success(self):
+        """비밀번호 재설정 성공 테스트"""
+        user = self.user
+        token = default_token_generator.make_token(user)
+        new_password = "ResetPassword789!"
+        url = reverse("reset_password")
+        response = self.client.post(
+            url,
+            {"token": token, "email": user.email, "new_password": new_password},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        user.refresh_from_db()
+        self.assertTrue(user.check_password(new_password))
+
+    def test_reset_password_invalid_token(self):
+        """비밀번호 재설정 실패 테스트 (잘못된 토큰)"""
+        user = self.user
+        new_password = "ResetPassword789!"
+        url = reverse("reset_password")
+        response = self.client.post(
+            url,
+            {
+                "token": TestUserData.INVALID_TOKEN,
+                "email": user.email,
+                "new_password": new_password,
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("유효하지 않은 토큰입니다", str(response.data))
