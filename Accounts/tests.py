@@ -183,3 +183,39 @@ class AccountAPITests(APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    # ==============================
+    # 로그아웃 (Logout) 테스트
+    # ==============================
+    def test_logout_success(self):
+        """로그아웃 성공 테스트"""
+        login_url = reverse("login")
+        login_response = self.client.post(
+            login_url,
+            {
+                "email": TestUserData.TEST_USER["email"],
+                "password": TestUserData.TEST_USER["password"],
+            },
+            format="json",
+        )
+        self.assertEqual(login_response.status_code, status.HTTP_200_OK)
+        refresh_token = login_response.data["data"]["refresh_token"]
+        access_token = login_response.data["data"]["access_token"]
+
+        logout_url = reverse("logout")
+        response = self.client.post(
+            logout_url,
+            {"refresh_token": refresh_token},
+            format="json",
+            HTTP_AUTHORIZATION=f"Bearer {access_token}",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_logout_unauthenticated(self):
+        """미인증 상태 로그아웃 실패 테스트"""
+        logout_url = reverse("logout")
+        response = self.client.post(
+            logout_url, {"refresh_token": "fakerefreshtoken"}, format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
