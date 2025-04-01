@@ -3,6 +3,7 @@ from django.urls import reverse
 from unittest.mock import patch
 from rest_framework import status
 from rest_framework.test import APITestCase
+from django.contrib.auth.tokens import default_token_generator
 
 
 # Django's 기본 User 모델 가져오기
