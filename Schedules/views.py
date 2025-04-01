@@ -1,11 +1,12 @@
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
+from openpyxl import load_workbook
 from rest_framework.generics import (
     ListAPIView,
     ListCreateAPIView,
     RetrieveUpdateDestroyAPIView,
 )
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -20,7 +21,7 @@ from .swagger_schema import (
     generate_swagger_response,
     update_create_response_schema,
 )
-from openpyxl import load_workbook
+
 
 class ScheduleListView(ListCreateAPIView):
     """
@@ -154,41 +155,59 @@ class UserScheduleListView(ListAPIView):
         # 현재 사용자가 작성한 일정만 반환
         return Schedule.objects.filter(user=self.request.user).select_related("group")
 
+
 class ExcelUploadview(ListCreateAPIView):
     """
     일정 등록 및 조회를 엑셀 파일을 업로드하여 진행합니다.
     """
+
     queryset = Schedule.objects.all()
     serializer_class = ScheduleSerializer
     permission_classes = [IsAdminOrReadOnly]
     parser_classes = (MultiPartParser, FormParser)
 
     def create(self, request, *args, **kwargs):
-        file = request.FILES.get('file')
+        file = request.FILES.get("file")
         if not file:
             return Response({"error": "엑셀 파일을 업로드 해주세요."}, status=400)
         try:
             # 엑셀 파일 로드
             workbook = load_workbook(file)
-            sheet = workbook.active # 첫번째 시트 사용
+            sheet = workbook.active  # 첫번째 시트 사용
 
             # 엑셀 데이터 읽기
             schedules = []
             for row in sheet.iter_rows(min_row=2, values_only=True):
-                group_id, title, description, location, start_time, end_time, participating_member_ids = row
-                schedule_data ={
-                    "group": int(group_id) if group_id else None, # 그룹 아이디 정수로 변환
+                (
+                    group_id,
+                    title,
+                    description,
+                    location,
+                    start_time,
+                    end_time,
+                    participating_member_ids,
+                ) = row
+                schedule_data = {
+                    "group": (
+                        int(group_id) if group_id else None
+                    ),  # 그룹 아이디 정수로 변환
                     "title": title,
                     "description": description,
                     "location": location,
                     "start_time": start_time,
                     "end_time": end_time,
-                    "participating_member_ids": [int(x) for x in str(participating_member_ids).split(",")] if participating_member_ids else []
+                    "participating_member_ids": (
+                        [int(x) for x in str(participating_member_ids).split(",")]
+                        if participating_member_ids
+                        else []
+                    ),
                 }
                 # serializer를 통해 검증 및 저장
                 serializer = self.get_serializer(data=schedule_data)
                 serializer.is_valid(raise_exception=True)
-                schedule=serializer.save(user=request.user) # 작성자를 현재 사용자로 설정
+                schedule = serializer.save(
+                    user=request.user
+                )  # 작성자를 현재 사용자로 설정
 
                 # JSON 응답을 위해 Schedule 객체를 Serializer로 직렬화
                 schedules.append(self.get_serializer(schedule).data)
