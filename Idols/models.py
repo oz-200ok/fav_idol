@@ -7,7 +7,7 @@ from Accounts.models import User
 class Agency(models.Model):
     name = models.CharField(max_length=20)  # null 불가, 공백 불가
     contact = models.CharField(max_length=50, null=True)
-    image = models.URLField(max_length=500, null=True)
+    image = models.URLField(max_length=500, null=True, blank=True)
 
     def __str__(self):
         return self.name
