@@ -172,3 +172,14 @@ class GroupScheduleListView(ListAPIView):
         serializer = self.get_serializer(queryset, many=True)
         # {"data": ...} 형식으로 리스폰스 반환
         return Response({"data": serializer.data})
+
+class UserScheduleListView(ListAPIView):
+    """
+    본인이 작성한 일정 목록 조회
+    """
+    serializer_class = ScheduleSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # 현재 사용자가 작성한 일정만 반환
+        return Schedule.objects.filter(user=self.request.user).select_related("group")
