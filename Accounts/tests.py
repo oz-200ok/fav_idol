@@ -135,3 +135,51 @@ class AccountAPITests(APITestCase):
         self.assertIn("유효하지 않은 인증 토큰", str(response.data))
         user.refresh_from_db()
         self.assertFalse(user.is_active)
+        
+    # ==============================
+    # 로그인 (Login) 테스트
+    # ==============================
+    def test_login_success(self):
+        """로그인 성공 테스트 (활성화된 사용자)"""
+        url = reverse("login")
+        response = self.client.post(
+            url,
+            {
+                "email": TestUserData.TEST_USER["email"],
+                "password": TestUserData.TEST_USER["password"],
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("access_token", response.data["data"])
+        self.assertIn("refresh_token", response.data["data"])
+        self.assertEqual(response.data["data"]["user"]["email"], self.user.email)
+
+    def test_login_inactive_user(self):
+        """비활성화된 사용자 로그인 실패 테스트"""
+        url = reverse("login")
+        response = self.client.post(
+            url,
+            {
+                "email": TestUserData.INACTIVE_USER["email"],
+                "password": TestUserData.INACTIVE_USER["password"],
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_login_wrong_password(self):
+        """잘못된 비밀번호 로그인 실패 테스트"""
+        url = reverse("login")
+        response = self.client.post(
+            url,
+            {
+                "email": TestUserData.TEST_USER["email"],
+                "password": TestUserData.WRONG_PASSWORD,
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
