@@ -7,7 +7,7 @@ from Accounts.models import User
 class Agency(models.Model):
     name = models.CharField(max_length=20)  # null 불가, 공백 불가
     contact = models.CharField(max_length=50, null=True)
-    image = models.URLField(max_length=500, null=True)
+    image = models.URLField(max_length=500, null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -15,9 +15,6 @@ class Agency(models.Model):
 
 class Group(models.Model):
     name = models.CharField(max_length=100, unique=True)  # 그룹 이름
-    # manager = models.ForeignKey(
-    #     User, on_delete=models.CASCADE, related_name="managed_groups", null=False
-    # )
     agency = models.ForeignKey(Agency, on_delete=models.CASCADE)  # 소속사
     color = models.CharField(
         max_length=7,
