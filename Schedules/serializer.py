@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
-from Idols.models import Group, Idol
 from config.base_exception import SubscriptionConflictException
+from Idols.models import Group, Idol
 
 from .models import Schedule
 
@@ -47,7 +47,9 @@ class ScheduleSerializer(serializers.ModelSerializer):
     def validate(self, data):
         # start_time과 end_time 검증
         if data["end_time"] <= data["start_time"]:
-            raise SubscriptionConflictException(detail="종료 시간이 시작 시간보다 빠를 수 없습니다.")
+            raise SubscriptionConflictException(
+                detail="종료 시간이 시작 시간보다 빠를 수 없습니다."
+            )
         return data
 
 

@@ -8,12 +8,17 @@ from rest_framework.generics import (
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from config.base_exception import ForbiddenException, ServiceUnavailableException
 from config.permissions import IsAdminOrReadOnly
-from Idols.models import Group
 from Preferences.notification_service import NotificationService
-from config.base_exception import UnauthorizedException, ServiceUnavailableException, ForbiddenException
+
 from .models import Schedule
-from .serializer import MinimalScheduleSerializer, ScheduleSerializer
+from .serializer import ScheduleSerializer
+from .swagger_schema import (
+    delete_response_schema,
+    generate_swagger_response,
+    update_create_response_schema,
+)
 
 
 class ScheduleListView(ListCreateAPIView):
@@ -34,7 +39,9 @@ class ScheduleListView(ListCreateAPIView):
     def perform_create(self, serializer):
         group = serializer.validated_data.get("group")
         if not group:  # 그룹이 없으면 503 오류 반환
-            raise ServiceUnavailableException(detail="선택된 그룹을 사용할 수 없습니다.")
+            raise ServiceUnavailableException(
+                detail="선택된 그룹을 사용할 수 없습니다."
+            )
         # 작성자를 자동으로 현재 사용자로 설정
         serializer.save(user=self.request.user)
         # 일정 생성 후 알림 발송
@@ -54,25 +61,9 @@ class ScheduleDetailView(RetrieveUpdateDestroyAPIView):
         request_body=ScheduleSerializer,
         responses={
             200: openapi.Response(
-                description="일정 삭제 성공",
-                schema=openapi.Schema(
-                    type=openapi.TYPE_OBJECT,
-                    properties={
-                        "schedule.id": openapi.Schema(
-                            type=openapi.TYPE_INTEGER, description="일정 ID"
-                        ),
-                        "group_id": openapi.Schema(
-                            type=openapi.TYPE_INTEGER, description="그룹 ID"
-                        ),
-                        "title": openapi.Schema(
-                            type=openapi.TYPE_STRING, description="일정 제목"
-                        ),
-                    },
-                ),
+                description="일정 삭제 성공", schema=delete_response_schema
             ),
-            404: openapi.Response(
-                description="일정을 찾을 수 없음",
-            ),
+            404: openapi.Response(description="일정을 찾을 수 없음"),
         },
     )
     def delete(self, request, *args, **kwargs):
@@ -94,32 +85,7 @@ class ScheduleDetailView(RetrieveUpdateDestroyAPIView):
         request_body=ScheduleSerializer,
         responses={
             200: openapi.Response(
-                description="일정 수정 성공",
-                schema=openapi.Schema(
-                    type=openapi.TYPE_OBJECT,
-                    properties={
-                        "group_id": openapi.Schema(
-                            type=openapi.TYPE_INTEGER, description="그룹 ID"
-                        ),
-                        "schedule_id": openapi.Schema(
-                            type=openapi.TYPE_INTEGER, description="일정 ID"
-                        ),
-                    },
-                ),
-            ),
-            201: openapi.Response(
-                description="일정 등록 성공",
-                schema=openapi.Schema(
-                    type=openapi.TYPE_OBJECT,
-                    properties={
-                        "group_id": openapi.Schema(
-                            type=openapi.TYPE_INTEGER, description="그룹 ID"
-                        ),
-                        "schedule_id": openapi.Schema(
-                            type=openapi.TYPE_INTEGER, description="일정 ID"
-                        ),
-                    },
-                ),
+                description="일정 수정 성공", schema=update_create_response_schema
             ),
         },
     )
@@ -135,18 +101,7 @@ class ScheduleDetailView(RetrieveUpdateDestroyAPIView):
         request_body=ScheduleSerializer,
         responses={
             201: openapi.Response(
-                description="일정 등록 성공",
-                schema=openapi.Schema(
-                    type=openapi.TYPE_OBJECT,
-                    properties={
-                        "group_id": openapi.Schema(
-                            type=openapi.TYPE_INTEGER, description="그룹 ID"
-                        ),
-                        "schedule_id": openapi.Schema(
-                            type=openapi.TYPE_INTEGER, description="일정 ID"
-                        ),
-                    },
-                ),
+                description="일정 등록 성공", schema=update_create_response_schema
             ),
         },
     )
@@ -166,12 +121,18 @@ class GroupScheduleListView(ListAPIView):
 
     serializer_class = ScheduleSerializer
 
+    @swagger_auto_schema(
+        responses=generate_swagger_response("특정 그룹 일정 조회", None),
+    )
     def get_queryset(self):
         group_id = self.kwargs["group_id"]
         return Schedule.objects.filter(group_id=group_id).prefetch_related(
             "participating_members"
         )
 
+    @swagger_auto_schema(
+        responses=generate_swagger_response("그룹 일정 목록", None),
+    )
     def list(self, request, *args, **kwargs):
         # 기존의 queryset 가져오기
         queryset = self.get_queryset()
