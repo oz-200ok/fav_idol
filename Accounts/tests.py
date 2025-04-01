@@ -337,3 +337,32 @@ class AccountAPITests(APITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+
+    # ==============================
+    # 이메일 찾기 (Find Email) 테스트
+    # ==============================
+    def test_find_email_success(self):
+        """이메일 찾기 성공 테스트"""
+        url = reverse("find_email")
+        response = self.client.post(
+            url,
+            {
+                "name": TestUserData.TEST_USER["name"],
+                "phone": TestUserData.TEST_USER["phone"],
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["data"]["email"], self.user.email)
+
+    def test_find_email_not_found(self):
+        """이메일 찾기 실패 테스트 (정보 불일치)"""
+        url = reverse("find_email")
+        response = self.client.post(
+            url,
+            {"name": "Wrong Name", "phone": TestUserData.TEST_USER["phone"]},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("입력하신 정보와 일치하는 회원이 없습니다", str(response.data))
