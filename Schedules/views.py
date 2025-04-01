@@ -5,6 +5,7 @@ from rest_framework.generics import (
     ListCreateAPIView,
     RetrieveUpdateDestroyAPIView,
 )
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -19,7 +20,7 @@ from .swagger_schema import (
     generate_swagger_response,
     update_create_response_schema,
 )
-
+from openpyxl import load_workbook
 
 class ScheduleListView(ListCreateAPIView):
     """
@@ -152,3 +153,43 @@ class UserScheduleListView(ListAPIView):
     def get_queryset(self):
         # 현재 사용자가 작성한 일정만 반환
         return Schedule.objects.filter(user=self.request.user).select_related("group")
+
+class ExcelUploadview(ListCreateAPIView):
+    """
+    일정 등록 및 조회를 엑셀 파일을 업로드하여 진행합니다.
+    """
+    queryset = Schedule.objects.all()
+    serializer_class = ScheduleSerializer
+    permission_classes = [IsAdminOrReadOnly]
+    parser_classes = (MultiPartParser, FormParser)
+
+    def create(self, request, *args, **kwargs):
+        file = request.FILES.get('file')
+        if not file:
+            return Response({"error": "엑셀 파일을 업로드 해주세요."}, status=400)
+        try:
+            # 엑셀 파일 로드
+            workbook = load_workbook(file)
+            sheet = workbook.active # 첫번째 시트 사용
+
+            # 엑셀 데이터 읽기
+            schedules = []
+            for row in sheet.iter_rows(min_row=2, values_only=True):
+                group_id, title, description, location, start_time, end_time = row
+                schedule_data ={
+                    "group_id": group_id,
+                    "title": title,
+                    "description": description,
+                    "location": location,
+                    "start_time": start_time,
+                    "end_time": end_time,
+                }
+                # serializer를 통해 검증 및 저장
+                serializer = self.get_serializer(data=schedule_data)
+                serializer.is_valid(raise_exception=True)
+                serializer.save(user=request.user) # 작성자를 현재 사용자로 설정
+                schedules.append(serializer.save())
+
+            return Response({"data": schedules}, status=201)
+        except Exception as e:
+            return Response({"error": str(e)}, status=400)
