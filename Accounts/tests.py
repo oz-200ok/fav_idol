@@ -366,3 +366,26 @@ class AccountAPITests(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("입력하신 정보와 일치하는 회원이 없습니다", str(response.data))
+
+    # ==============================
+    # 비밀번호 찾기 (Find Password) 테스트
+    # ==============================
+    @patch("Accounts.services.EmailService.send_password_reset_email")
+    def test_find_password_success(self, mock_send_email):
+        """비밀번호 찾기(재설정 이메일 발송) 성공 테스트"""
+        url = reverse("find_password")
+        response = self.client.post(
+            url, {"email": TestUserData.TEST_USER["email"]}, format="json"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        mock_send_email.assert_called_once_with(self.user)
+
+    def test_find_password_user_not_found(self):
+        """비밀번호 찾기 실패 테스트 (존재하지 않는 이메일)"""
+        url = reverse("find_password")
+        response = self.client.post(
+            url, {"email": "nonexistent@example.com"}, format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("입력하신 이메일로 등록된 계정이 없습니다", str(response.data))
