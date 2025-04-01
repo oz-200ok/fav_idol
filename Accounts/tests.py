@@ -300,3 +300,40 @@ class AccountAPITests(APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    # ==============================
+    # 중복 확인 (Check Duplicate) 테스트
+    # ==============================
+    def test_check_duplicate_username_exists(self):
+        """중복 닉네임 확인 테스트 (존재하는 경우)"""
+        url = reverse("check-duplicate") + f"?type=username&value={self.user.username}"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_check_duplicate_username_not_exists(self):
+        """중복 닉네임 확인 테스트 (존재하지 않는 경우)"""
+        unique_username = "uniqueusername"
+        url = reverse("check-duplicate") + f"?type=username&value={unique_username}"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("username", response.data["data"])
+        self.assertEqual(response.data["data"]["username"], unique_username)
+
+    def test_check_duplicate_email_exists(self):
+        """중복 이메일 확인 테스트 (존재하는 경우)"""
+        url = reverse("check-duplicate") + f"?type=email&value={self.user.email}"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_check_duplicate_phone_exists(self):
+        """중복 전화번호 확인 테스트 (존재하는 경우)"""
+        url = reverse("check-duplicate") + f"?type=phone&value={self.user.phone}"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_check_duplicate_invalid_type(self):
+        """중복 확인 실패 테스트 (잘못된 타입)"""
+        url = reverse("check-duplicate") + "?type=invalidtype&value=somevalue"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
