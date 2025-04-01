@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from config.permissions import IsAdminOrReadOnly
 from Idols.models import Group
 from Preferences.notification_service import NotificationService
-
+from config.base_exception import UnauthorizedException, ServiceUnavailableException, ForbiddenException
 from .models import Schedule
 from .serializer import MinimalScheduleSerializer, ScheduleSerializer
 
@@ -32,6 +32,9 @@ class ScheduleListView(ListCreateAPIView):
         return {"data": context}
 
     def perform_create(self, serializer):
+        group = serializer.validated_data.get("group")
+        if not group:  # 그룹이 없으면 503 오류 반환
+            raise ServiceUnavailableException(detail="선택된 그룹을 사용할 수 없습니다.")
         # 작성자를 자동으로 현재 사용자로 설정
         serializer.save(user=self.request.user)
         # 일정 생성 후 알림 발송
@@ -74,6 +77,11 @@ class ScheduleDetailView(RetrieveUpdateDestroyAPIView):
     )
     def delete(self, request, *args, **kwargs):
         instance = self.get_object()
+
+        # 사용자가 일정의 작성자인지 확인
+        if instance.user != request.user:
+            raise ForbiddenException(detail="삭제 권한이 없습니다.")
+
         deleted_schedule_data = {
             "schedule.id": instance.id,
             "group_id": instance.group_id,
