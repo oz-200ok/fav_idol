@@ -3,6 +3,7 @@ from django.urls import path
 from .views import (
     AgencyDetailView,
     AgencyListView,
+    GroupByNameView,
     GroupDetailView,
     GroupListView,
     IdolDetailView,
@@ -18,6 +19,10 @@ urlpatterns = [
     path(
         "groups/<int:pk>/", GroupDetailView.as_view(), name="group_detail"
     ),  # 그룹 디테일
+    path(
+        "ilog/idol/groups/<str:name>/", GroupByNameView.as_view(), name="group_by_name"
+    ),
+    # 그룹 이름으로 검색
     # 아이돌 리스트
     path("idols/", IdolListView.as_view(), name="idol_list"),
     path(

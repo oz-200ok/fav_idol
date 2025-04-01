@@ -5,13 +5,15 @@ from rest_framework.generics import (
     ListCreateAPIView,
     RetrieveUpdateDestroyAPIView,
 )
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from config.permissions import IsAdminOrReadOnly
+from Idols.models import Group
 from Preferences.notification_service import NotificationService
 
 from .models import Schedule
-from .serializer import ScheduleSerializer
+from .serializer import MinimalScheduleSerializer, ScheduleSerializer
 
 
 class ScheduleListView(ListCreateAPIView):
@@ -27,11 +29,13 @@ class ScheduleListView(ListCreateAPIView):
     def get_serializer_context(self):
         context = super().get_serializer_context()
         context["request"] = self.request  # request 객체를 context에 추가
-        return context
+        return {"data": context}
 
     def perform_create(self, serializer):
         # 일정 생성
         schedule = serializer.save()
+        manager = group.manager
+        serializer.save(manager=manager)
         # 일정 생성 후 알림 발송 (비동기적으로 처리됨)
         NotificationService.notify_schedule_creation(schedule)
 
@@ -78,7 +82,7 @@ class ScheduleDetailView(RetrieveUpdateDestroyAPIView):
             "title": instance.title,
         }
         self.perform_destroy(instance)
-        return Response(deleted_schedule_data, status=200)
+        return Response({"data": deleted_schedule_data}, status=200)
 
     @swagger_auto_schema(
         request_body=ScheduleSerializer,
@@ -119,7 +123,7 @@ class ScheduleDetailView(RetrieveUpdateDestroyAPIView):
             "group_id": request.data.get("group_id"),
             "schedule_id": self.kwargs["pk"],
         }
-        return Response(updated_data, status=200)
+        return Response({"data": updated_data}, status=200)
 
     @swagger_auto_schema(
         request_body=ScheduleSerializer,
@@ -146,7 +150,7 @@ class ScheduleDetailView(RetrieveUpdateDestroyAPIView):
             "group_id": request.data.get("group_id"),
             "schedule_id": 123,  # 새로 생성된 ID를 반환
         }
-        return Response(created_data, status=201)
+        return Response({"data": created_data}, status=201)
 
 
 class GroupScheduleListView(ListAPIView):
@@ -161,3 +165,33 @@ class GroupScheduleListView(ListAPIView):
         return Schedule.objects.filter(group_id=group_id).prefetch_related(
             "participating_members"
         )
+
+    def list(self, request, *args, **kwargs):
+        # 기존의 queryset 가져오기
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        # {"data": ...} 형식으로 리스폰스 반환
+        return Response({"data": serializer.data})
+
+
+# class ManagedGroupSchedulesView(ListAPIView):
+#     """
+#     로그인한 사용자가 관리 중인 그룹의 일정 조회
+#     """
+#
+#     serializer_class = MinimalScheduleSerializer
+#     permission_classes = [IsAuthenticated]  # 인증된 사용자만 접근 가능
+#
+#     def get_queryset(self):
+#         user = self.request.user
+#         user_managed_groups = Group.objects.filter(manager=user)  # 관리 중인 그룹 조회
+#         return Schedule.objects.filter(group__in=user_managed_groups).select_related(
+#             "group"
+#         )
+#
+#     def list(self, request, *args, **kwargs):
+#         # 기존의 queryset 가져오기
+#         queryset = self.get_queryset()
+#         serializer = self.get_serializer(queryset, many=True)
+#         # {"data": ...} 형식으로 리스폰스 반환
+#         return Response({"data": serializer.data})
