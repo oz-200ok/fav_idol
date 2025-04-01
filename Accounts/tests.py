@@ -238,3 +238,65 @@ class AccountAPITests(APITestCase):
         url = reverse("user_profile")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    # ==============================
+    # 프로필 수정 (User Profile Update) 테스트
+    # ==============================
+    def test_update_user_profile_success(self):
+        """프로필 수정 성공 테스트 (닉네임, 전화번호 변경)"""
+        url = reverse("user-profile-update")
+        self.client.force_authenticate(user=self.user)
+        new_username = "updatedusername"
+        new_phone = "01099998888"
+        response = self.client.patch(
+            url, {"username": new_username, "phone": new_phone}, format="json"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.username, new_username)
+        self.assertEqual(self.user.phone, new_phone)
+        self.assertEqual(response.data["data"]["username"], new_username)
+
+    def test_update_user_profile_password_success(self):
+        """프로필 수정 성공 테스트 (비밀번호 변경)"""
+        url = reverse("user-profile-update")
+        self.client.force_authenticate(user=self.user)
+        new_password = "NewStrongPassword456!"
+        response = self.client.patch(
+            url,
+            {
+                "current_password": TestUserData.TEST_USER["password"],
+                "password": new_password,
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password(new_password))
+
+    def test_update_user_profile_password_wrong_current(self):
+        """프로필 수정 실패 테스트 (현재 비밀번호 불일치)"""
+        url = reverse("user-profile-update")
+        self.client.force_authenticate(user=self.user)
+        response = self.client.patch(
+            url,
+            {
+                "current_password": TestUserData.WRONG_PASSWORD,
+                "password": "NewStrongPassword456!",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_update_user_profile_duplicate_username(self):
+        """프로필 수정 실패 테스트 (닉네임 중복)"""
+        url = reverse("user-profile-update")
+        self.client.force_authenticate(user=self.user)
+        response = self.client.patch(
+            url, {"username": self.other_user.username}, format="json"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
