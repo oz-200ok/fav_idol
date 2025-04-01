@@ -219,3 +219,22 @@ class AccountAPITests(APITestCase):
             logout_url, {"refresh_token": "fakerefreshtoken"}, format="json"
         )
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    # ==============================
+    # 프로필 조회 (User Profile) 테스트
+    # ==============================
+    def test_get_user_profile_success(self):
+        """인증된 사용자 프로필 조회 성공 테스트"""
+        url = reverse("user_profile")
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["data"]["email"], self.user.email)
+        self.assertEqual(response.data["data"]["username"], self.user.username)
+
+    def test_get_user_profile_unauthenticated(self):
+        """미인증 사용자 프로필 조회 실패 테스트"""
+        url = reverse("user_profile")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
