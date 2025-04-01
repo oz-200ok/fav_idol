@@ -53,7 +53,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(max_length=50, unique=True)
     is_active = models.BooleanField(default=False)  # 이메일 인증 여부
     name = models.CharField(max_length=20)
-    username = models.CharField(max_length=15, unique=True)
+    username = models.CharField(max_length=50, unique=True)
     password = models.CharField(max_length=200)
     phone = models.CharField(max_length=15, unique=True, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
