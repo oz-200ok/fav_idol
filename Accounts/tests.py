@@ -426,3 +426,22 @@ class AccountAPITests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("유효하지 않은 토큰입니다", str(response.data))
+
+    # ==============================
+    # 회원 탈퇴 (Delete Account) 테스트
+    # ==============================
+    def test_delete_account_success(self):
+        """회원 탈퇴 성공 테스트"""
+        user_id_to_delete = self.user.id
+        url = reverse("account-delete")
+        self.client.force_authenticate(user=self.user)
+        response = self.client.delete(url)
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(User.objects.filter(id=user_id_to_delete).exists())
+
+    def test_delete_account_unauthenticated(self):
+        """미인증 상태 회원 탈퇴 실패 테스트"""
+        url = reverse("account-delete")
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
