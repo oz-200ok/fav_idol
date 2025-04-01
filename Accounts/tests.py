@@ -445,3 +445,24 @@ class AccountAPITests(APITestCase):
         url = reverse("account-delete")
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    # ==============================
+    # 소셜 로그인 (Social Login) 테스트
+    # ==============================
+    @patch("Accounts.services.SocialLoginService.get_access_token")
+    def test_social_login_missing_code(self, mock_get_access_token):
+        """소셜 로그인 실패 테스트 (인가 코드 누락)"""
+        url = reverse("social-login")
+        response = self.client.post(url, {"social_type": "kakao"}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        mock_get_access_token.assert_not_called()
+
+    @patch("Accounts.services.SocialLoginService.get_access_token")
+    def test_social_login_invalid_type(self, mock_get_access_token):
+        """소셜 로그인 실패 테스트 (지원하지 않는 타입)"""
+        url = reverse("social-login")
+        response = self.client.post(
+            url, {"social_type": "google", "code": "somecode"}, format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        mock_get_access_token.assert_not_called()
