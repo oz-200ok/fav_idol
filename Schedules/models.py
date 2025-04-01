@@ -17,7 +17,6 @@ class Schedule(models.Model):
     end_time = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    # manager = models.ForeignKey(User, on_delete=models.CASCADE, null=False)
 
     # 참가 멤버와의 다대다 관계를 위한 필드
     participating_members = models.ManyToManyField(

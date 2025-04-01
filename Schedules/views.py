@@ -172,26 +172,3 @@ class GroupScheduleListView(ListAPIView):
         serializer = self.get_serializer(queryset, many=True)
         # {"data": ...} 형식으로 리스폰스 반환
         return Response({"data": serializer.data})
-
-
-# class ManagedGroupSchedulesView(ListAPIView):
-#     """
-#     로그인한 사용자가 관리 중인 그룹의 일정 조회
-#     """
-#
-#     serializer_class = MinimalScheduleSerializer
-#     permission_classes = [IsAuthenticated]  # 인증된 사용자만 접근 가능
-#
-#     def get_queryset(self):
-#         user = self.request.user
-#         user_managed_groups = Group.objects.filter(manager=user)  # 관리 중인 그룹 조회
-#         return Schedule.objects.filter(group__in=user_managed_groups).select_related(
-#             "group"
-#         )
-#
-#     def list(self, request, *args, **kwargs):
-#         # 기존의 queryset 가져오기
-#         queryset = self.get_queryset()
-#         serializer = self.get_serializer(queryset, many=True)
-#         # {"data": ...} 형식으로 리스폰스 반환
-#         return Response({"data": serializer.data})
