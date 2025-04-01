@@ -175,20 +175,23 @@ class ExcelUploadview(ListCreateAPIView):
             # 엑셀 데이터 읽기
             schedules = []
             for row in sheet.iter_rows(min_row=2, values_only=True):
-                group_id, title, description, location, start_time, end_time = row
+                group_id, title, description, location, start_time, end_time, participating_member_ids = row
                 schedule_data ={
-                    "group_id": group_id,
+                    "group": int(group_id) if group_id else None, # 그룹 아이디 정수로 변환
                     "title": title,
                     "description": description,
                     "location": location,
                     "start_time": start_time,
                     "end_time": end_time,
+                    "participating_member_ids": [int(x) for x in str(participating_member_ids).split(",")] if participating_member_ids else []
                 }
                 # serializer를 통해 검증 및 저장
                 serializer = self.get_serializer(data=schedule_data)
                 serializer.is_valid(raise_exception=True)
-                serializer.save(user=request.user) # 작성자를 현재 사용자로 설정
-                schedules.append(serializer.save())
+                schedule=serializer.save(user=request.user) # 작성자를 현재 사용자로 설정
+
+                # JSON 응답을 위해 Schedule 객체를 Serializer로 직렬화
+                schedules.append(self.get_serializer(schedule).data)
 
             return Response({"data": schedules}, status=201)
         except Exception as e:
