@@ -96,3 +96,41 @@ class AccountAPITests(APITestCase):
         }  # username 필드 제외
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    # ==============================
+    # 이메일 인증 (Verify Email) 테스트
+    # ==============================
+    def test_verify_email_success(self):
+        """이메일 인증 성공 테스트"""
+        user = self.inactive_user
+        token = default_token_generator.make_token(user)
+        import urllib.parse
+
+        email_encoded = urllib.parse.quote(user.email)
+        url = reverse("verify_email") + f"?token={token}&email={email_encoded}"
+
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        user.refresh_from_db()
+        self.assertTrue(user.is_active)
+        self.assertIn("data", response.data)
+        self.assertEqual(response.data["data"]["email"], user.email)
+
+    def test_verify_email_invalid_token(self):
+        """잘못된 토큰으로 이메일 인증 실패 테스트"""
+        user = self.inactive_user
+        import urllib.parse
+
+        email_encoded = urllib.parse.quote(user.email)
+        url = (
+            reverse("verify_email")
+            + f"?token={TestUserData.INVALID_TOKEN}&email={email_encoded}"
+        )
+
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("유효하지 않은 인증 토큰", str(response.data))
+        user.refresh_from_db()
+        self.assertFalse(user.is_active)
