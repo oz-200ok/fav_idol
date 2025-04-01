@@ -173,10 +173,12 @@ class GroupScheduleListView(ListAPIView):
         # {"data": ...} 형식으로 리스폰스 반환
         return Response({"data": serializer.data})
 
+
 class UserScheduleListView(ListAPIView):
     """
     본인이 작성한 일정 목록 조회
     """
+
     serializer_class = ScheduleSerializer
     permission_classes = [IsAuthenticated]
 

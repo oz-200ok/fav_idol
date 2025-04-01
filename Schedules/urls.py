@@ -8,5 +8,5 @@ urlpatterns = [
     path(
         "group/<int:group_id>/", GroupScheduleListView.as_view(), name="group_schedule"
     ),
-    path('my-schedules/', UserScheduleListView.as_view(), name='my_schedules'),
+    path("myschedules/", UserScheduleListView.as_view(), name="my_schedules"),
 ]
