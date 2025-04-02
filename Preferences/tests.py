@@ -86,3 +86,16 @@ class PreferenceAPITests(APITestCase):
         self.assertFalse(response.data['data']['notification']) # 요청한 대로 알림 False 확인
         # DB에 실제 생성되었는지 확인
         self.assertTrue(UserGroupSubscribe.objects.filter(user=self.user, group=self.group2, notification=False).exists())
+        
+    def test_create_subscription_invalid_group(self):
+        """POST /subscriptions/ - 존재하지 않는 그룹 ID로 구독 시 실패 테스트"""
+        invalid_group_id = 9999
+        data = {'group_id': invalid_group_id, 'notification': True}
+        response = self.client.post(self.subscribe_list_create_url, data=data)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST) # 잘못된 요청 상태 코드 확인
+        self.assertIn('error_code', response.data) # error_code 키가 있는지 확인
+        self.assertEqual(response.data['error_code'], 'invalid') # 에러 코드가 'invalid'인지 확인
+        # DB에 생성되지 않았는지 확인
+        self.assertFalse(UserGroupSubscribe.objects.filter(user=self.user, group_id=invalid_group_id).exists())
+
