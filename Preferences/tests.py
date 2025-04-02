@@ -75,3 +75,14 @@ class PreferenceAPITests(APITestCase):
         self.assertEqual(response.data['data'][0]['group_id'], self.group1.id) # 반환된 데이터의 그룹 ID 확인
         self.assertEqual(response.data['data'][0]['group_name'], self.group1.name) # 반환된 데이터의 그룹 이름 확인
         self.assertTrue(response.data['data'][0]['notification']) # 알림 설정 확인
+        
+    def test_create_subscription_success(self):
+        """POST /subscriptions/ - 새 그룹 구독 성공 테스트"""
+        data = {'group_id': self.group2.id, 'notification': False} # 아직 구독 안 한 group2 구독 요청
+        response = self.client.post(self.subscribe_list_create_url, data=data)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED) # 생성 성공 상태 코드 확인
+        self.assertEqual(response.data['data']['group_id'], self.group2.id) # 응답 데이터 확인
+        self.assertFalse(response.data['data']['notification']) # 요청한 대로 알림 False 확인
+        # DB에 실제 생성되었는지 확인
+        self.assertTrue(UserGroupSubscribe.objects.filter(user=self.user, group=self.group2, notification=False).exists())
