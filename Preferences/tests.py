@@ -96,3 +96,10 @@ class PreferenceAPITests(APITestCase):
         url = self.schedule_detail_url(invalid_schedule_id)
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        
+    def test_api_authentication_required(self):
+        """주요 엔드포인트 인증 실패 확인 (401/403 에러 확인)"""
+        self.client.force_authenticate(user=None) # 인증 해제
+        # 대표 엔드포인트 접근 시도
+        response = self.client.get(self.subscribe_list_create_url)
+        self.assertIn(response.status_code, [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN])
