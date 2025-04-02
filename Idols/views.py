@@ -19,6 +19,8 @@ from config.permissions import IsAdminOrReadOnly
 from .models import Agency, Group, Idol
 from .serializers import AgencySerializer, GroupSerializer, IdolSerializer
 
+from django.db.models import Count
+
 
 class TestView(GenericAPIView):
     def get(self, request, *args, **kwargs):
@@ -97,7 +99,7 @@ class AgencyDetailView(RetrieveUpdateDestroyAPIView):
 
 # 그룹 리스트
 class GroupListView(ListCreateAPIView):
-    queryset = Group.objects.select_related("agency").annotate(
+    queryset = Group.objects.select_related("agency").prefetch_related('idol_set').annotate(
         member_count=Count("idol")
     )
     serializer_class = GroupSerializer
@@ -133,7 +135,7 @@ class GroupByNameView(ListAPIView):
     def get_queryset(self):
         name = self.kwargs["name"]  # URL에서 'name' 변수 가져오기
         # 특정 이름의 그룹 조회
-        return Group.objects.filter(name=name)
+        return Group.objects.select_related('agency').prefetch_related('idol_set').filter(name=name).annotate(member_count=Count('idol'))
 
     def list(self, request, *args, **kwargs):
         # 기본 리스트 뷰 동작을 가져옴
@@ -143,7 +145,7 @@ class GroupByNameView(ListAPIView):
 
 
 class GroupDetailView(RetrieveUpdateDestroyAPIView):
-    queryset = Group.objects.select_related("agency")
+    queryset = Group.objects.select_related("agency").prefetch_related('idol_set').annotate(member_count=Count('idol'))
     serializer_class = GroupSerializer
     permission_classes = [IsAdminOrReadOnly]
     parser_classes = (MultiPartParser, FormParser)
