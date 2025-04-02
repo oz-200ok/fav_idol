@@ -75,4 +75,10 @@ class PreferenceAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('error_code', response.data) # 커스텀 에러 형식 확인
         
-    
+    def test_list_subscribed_schedules_success(self):
+        """구독한 그룹의 일정 목록 조회 성공 (GET /schedules/)"""
+        response = self.client.get(self.subscribed_schedules_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # 초기 구독(group1)의 일정(schedule1)만 포함하는지 확인
+        self.assertEqual(len(response.data['data']), 1)
+        self.assertEqual(response.data['data'][0]['title'], self.schedule1.title)
