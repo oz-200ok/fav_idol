@@ -33,11 +33,11 @@ class ScheduleSerializer(serializers.ModelSerializer):
         if not request or not hasattr(request, "user"):
             raise serializers.ValidationError("User context is missing.")
 
+        validated_data["user"] = request.user  # 사용자 추가
         participating_members = validated_data.pop("participating_member_ids", [])
+
         schedule = Schedule.objects.create(**validated_data)
-        schedule.participating_members.set(
-            participating_members
-        )  # ManyToMany 관계 설정
+        schedule.participating_members.set(participating_members)  # ManyToMany 관계 설정
         return schedule
 
     def get_participating_members(self, obj):

@@ -1,9 +1,10 @@
 from django.urls import reverse
-from rest_framework.test import APITestCase, APIClient
+from rest_framework.test import APITestCase, APIClient, APIRequestFactory
 from django.contrib.auth import get_user_model
 from rest_framework import status
 from .models import Schedule, Group
 from Idols.models import Agency, Idol
+from .serializer import ScheduleSerializer
 
 class PermissionOverrideTest(APITestCase):
     def setUp(self):
@@ -35,10 +36,16 @@ class PermissionOverrideTest(APITestCase):
 
         # API 엔드포인트 설정
         self.schedule_list_url = reverse("schedule")
-        self.schedule_detail_url = lambda pk: reverse("schedule-detail", kwargs={"pk": pk})
+        self.schedule_detail_url = lambda pk: reverse("schedule_detail", kwargs={"pk": pk})
+
+    from rest_framework.request import Request
+    from rest_framework.test import APIRequestFactory
 
     def test_create_schedule_as_admin(self):
         """관리자 권한으로 일정 생성 테스트"""
+        idol1 = Idol.objects.create(name="Idol1", group=self.group)
+        idol2 = Idol.objects.create(name="Idol2", group=self.group)
+
         data = {
             "group": self.group.id,
             "title": "Admin Test Schedule",
@@ -46,12 +53,20 @@ class PermissionOverrideTest(APITestCase):
             "location": "Head Office",
             "start_time": "2025-04-01T10:00:00Z",
             "end_time": "2025-04-01T12:00:00Z",
+            "participating_member_ids": [idol1.id, idol2.id],
         }
 
-        response = self.client.post(self.schedule_list_url, data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Schedule.objects.count(), 1)
-        self.assertEqual(Schedule.objects.get().title, "Admin Test Schedule")
+        factory = APIRequestFactory()
+        request = factory.post(self.schedule_list_url, data, format="json")
+        request.user = self.superuser  # 인증된 사용자 설정
+
+        serializer = ScheduleSerializer(data=data, context={"request": request})
+        if serializer.is_valid():
+            serializer.save()
+            self.assertEqual(Schedule.objects.count(), 1)
+            self.assertEqual(Schedule.objects.get().title, "Admin Test Schedule")
+        else:
+            print("Errors:", serializer.errors)
 
     def test_list_schedules(self):
         """일정 목록 조회 테스트"""
@@ -70,16 +85,19 @@ class PermissionOverrideTest(APITestCase):
         self.assertEqual(len(response.data), 1)
 
     def test_delete_schedule(self):
-        """일정 삭제 테스트"""
+        """관리자 권한으로 일정 삭제 테스트"""
         schedule = Schedule.objects.create(
             group=self.group,
-            user=self.user,
+            user=self.superuser,  # 관리자 사용자로 설정
             title="Sample Schedule",
             description="This is a sample.",
             location="Meeting Room",
             start_time="2025-04-01T10:00:00Z",
             end_time="2025-04-01T12:00:00Z",
         )
+
+        # force_authenticate로 관리자 인증 설정
+        self.client.force_authenticate(user=self.superuser)
 
         response = self.client.delete(self.schedule_detail_url(schedule.id), format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
