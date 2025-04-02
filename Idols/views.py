@@ -14,7 +14,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from config.base_exception import NotFoundException
-from config.permissions import IsAdminOrReadOnly, IsSuperUser
+from config.permissions import IsAdminOrReadOnly
 
 from .models import Agency, Group, Idol
 from .serializers import AgencySerializer, GroupSerializer, IdolSerializer
@@ -60,7 +60,7 @@ class AgencyListView(ListCreateAPIView):
 class AgencyDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Agency.objects.all()
     serializer_class = AgencySerializer
-    permission_classes = [IsSuperUser]
+    permission_classes = [IsAdminOrReadOnly]
     parser_classes = (MultiPartParser, FormParser)
 
     @swagger_auto_schema(
@@ -145,7 +145,7 @@ class GroupByNameView(ListAPIView):
 class GroupDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Group.objects.select_related("agency")
     serializer_class = GroupSerializer
-    permission_classes = [IsSuperUser]
+    permission_classes = [IsAdminOrReadOnly]
     parser_classes = (MultiPartParser, FormParser)
 
     @swagger_auto_schema(
