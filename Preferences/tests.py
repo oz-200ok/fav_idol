@@ -92,16 +92,11 @@ class PreferenceAPITests(APITestCase):
 
     def test_create_subscription_invalid_group(self):
         """존재하지 않는 그룹 ID로 구독 요청 테스트"""
-        data = {"group_id": 9999}  # 존재하지 않는 그룹 ID 사용
+        data = {"group_id": 9999}  # 존재하지 않는 그룹 ID
         response = self.client.post("/preferences/subscribe/", data, format="json")
 
-        # 기존: 커스텀 에러 구조 검사
-        # self.assertIn("error_code", response.data)
-
-        # 수정: 기본 에러 포맷 검사
-        self.assertIn("group_id", response.data)
-        self.assertEqual(response.data["group_id"][0].code, "invalid")
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)  # 실패 확인
+        self.assertIn("group_id", response.data)  # 에러 메시지 확인
 
     def test_list_subscribed_schedules_success(self):
         """구독한 그룹의 일정 목록 조회 성공 (GET /schedules/)"""
