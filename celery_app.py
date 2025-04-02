@@ -5,7 +5,6 @@ from celery import Celery
 
 # print(">>>> Loading ...") # 디버깅용 print문 제거
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
-django.setup()
 
 app = Celery("config")
 
