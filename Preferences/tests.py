@@ -67,3 +67,12 @@ class PreferenceAPITests(APITestCase):
         self.assertEqual(len(list_response_after_delete.data['data']), 1)
         self.assertEqual(list_response_after_delete.data['data'][0]['group_id'], self.group1.id)
 
+    def test_create_subscription_invalid_group(self):
+        """존재하지 않는 그룹 ID 구독 시 실패 (400 에러 확인)"""
+        invalid_group_id = 9999
+        data = {'group_id': invalid_group_id}
+        response = self.client.post(self.subscribe_list_create_url, data=data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('error_code', response.data) # 커스텀 에러 형식 확인
+        
+    
