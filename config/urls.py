@@ -31,7 +31,7 @@ urlpatterns = [
     path("ilog/idol/", include("Idols.urls")),
     path("ilog/service/", include("Preferences.urls")),
     path("ilog/accounts/", include("allauth.urls")),
-    path("test/", TestView.as_view(), name="test_view"),
+    # path("test/", TestView.as_view(), name="test_view"),
 ]
 
 if settings.DEBUG:
