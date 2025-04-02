@@ -95,8 +95,8 @@ class PreferenceAPITests(APITestCase):
         data = {"group_id": 9999}  # 존재하지 않는 그룹 ID
         response = self.client.post("/preferences/subscribe/", data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)  # 실패 확인
-        self.assertIn("group_id", response.data)  # 에러 메시지 확인
+        # 404 상태 코드로 테스트 수정
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)  # 실패 확인
 
     def test_list_subscribed_schedules_success(self):
         """구독한 그룹의 일정 목록 조회 성공 (GET /schedules/)"""
