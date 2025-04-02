@@ -1,10 +1,13 @@
-from django.urls import reverse
-from rest_framework.test import APITestCase, APIClient, APIRequestFactory
 from django.contrib.auth import get_user_model
+from django.urls import reverse
 from rest_framework import status
-from .models import Schedule, Group
+from rest_framework.test import APIClient, APIRequestFactory, APITestCase
+
 from Idols.models import Agency, Idol
+
+from .models import Group, Schedule
 from .serializer import ScheduleSerializer
+
 
 class PermissionOverrideTest(APITestCase):
     def setUp(self):
@@ -14,14 +17,14 @@ class PermissionOverrideTest(APITestCase):
             username="adminuser",
             name="Super User",
             email="admin@example.com",
-            password="adminpassword123"
+            password="adminpassword123",
         )
 
         self.user = User.objects.create_user(
             username="testuser",
             name="Test User",
             email="testuser@example.com",
-            password="password123"
+            password="password123",
         )
 
         # 테스트 그룹 및 에이전시 생성
@@ -36,7 +39,9 @@ class PermissionOverrideTest(APITestCase):
 
         # API 엔드포인트 설정
         self.schedule_list_url = reverse("schedule")
-        self.schedule_detail_url = lambda pk: reverse("schedule_detail", kwargs={"pk": pk})
+        self.schedule_detail_url = lambda pk: reverse(
+            "schedule_detail", kwargs={"pk": pk}
+        )
 
     from rest_framework.request import Request
     from rest_framework.test import APIRequestFactory
@@ -99,6 +104,8 @@ class PermissionOverrideTest(APITestCase):
         # force_authenticate로 관리자 인증 설정
         self.client.force_authenticate(user=self.superuser)
 
-        response = self.client.delete(self.schedule_detail_url(schedule.id), format="json")
+        response = self.client.delete(
+            self.schedule_detail_url(schedule.id), format="json"
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(Schedule.objects.count(), 0)

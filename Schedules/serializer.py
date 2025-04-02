@@ -37,7 +37,9 @@ class ScheduleSerializer(serializers.ModelSerializer):
         participating_members = validated_data.pop("participating_member_ids", [])
 
         schedule = Schedule.objects.create(**validated_data)
-        schedule.participating_members.set(participating_members)  # ManyToMany 관계 설정
+        schedule.participating_members.set(
+            participating_members
+        )  # ManyToMany 관계 설정
         return schedule
 
     def get_participating_members(self, obj):
