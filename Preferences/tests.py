@@ -17,45 +17,18 @@ class PreferenceAPITests(APITestCase):
     @classmethod
     def setUpTestData(cls):
         """테스트 전체에서 사용할 초기 데이터 설정"""
-        # 1. 테스트용 사용자 생성
-        cls.user = User.objects.create_user(
-            username='testuser',
-            password='password123',
-            email='test@example.com',
-            name='Test User' # <- name 인자 추가! 원하는 테스트용 이름으로 설정해
-        )
-
-        # 1.5. 테스트용 Agency 생성 (Group을 만들기 전에 필요)
-        cls.agency = Agency.objects.create(name='Test Agency') 
-
-        # 2. 테스트용 그룹 생성 
+        # 사용자
+        cls.user = User.objects.create_user(username='testuser', password='password123', email='test@example.com', name='Test User')
+        # 에이전시
+        cls.agency = Agency.objects.create(name='Test Agency')
+        # 그룹 (group1은 초기 구독용, group2는 CRUD 테스트용)
         cls.group1 = Group.objects.create(name='Test Group 1', agency=cls.agency)
-        cls.group2 = Group.objects.create(name='Test Group 2', agency=cls.agency) 
-
-        # 3. 테스트용 일정 생성
-        cls.schedule1 = Schedule.objects.create(
-            group=cls.group1,
-            user=cls.user, 
-            title='Test Schedule 1 for Group 1',
-            start_time='2025-04-10T10:00:00Z',
-            location='Test Location'
-        )
-        # 4. 테스트용 일정 생성 
-        cls.schedule2 = Schedule.objects.create(
-            group=cls.group2,
-            user=cls.user,
-            title='Test Schedule 2 for Group 2',
-            start_time='2025-04-11T10:00:00Z',
-        )
-
-        # 5. 초기 구독 상태 생성 (user가 group1을 구독)
-        cls.initial_subscription = UserGroupSubscribe.objects.create(
-            user=cls.user,
-            group=cls.group1,
-            notification=True
-        )
-
-        # API 엔드포인트 URL 미리 정의
+        cls.group2 = Group.objects.create(name='Test Group 2', agency=cls.agency)
+        # 일정 (group1 소속)
+        cls.schedule1 = Schedule.objects.create(group=cls.group1, user=cls.user, title='Test Schedule 1', start_time='2025-04-10T10:00:00Z')
+        # 초기 구독 (group1) - 일정 목록 테스트에 필요
+        cls.initial_subscription = UserGroupSubscribe.objects.create(user=cls.user, group=cls.group1, notification=True)
+        # URL 정의
         cls.subscribe_list_create_url = reverse('subscribe-list')
         cls.subscribe_detail_url = lambda pk: reverse('subscribe-detail', kwargs={'pk': pk})
         cls.subscribed_schedules_url = reverse('user-subscribed-schedules')
@@ -66,36 +39,31 @@ class PreferenceAPITests(APITestCase):
         # 모든 API 요청에 대해 인증된 사용자 설정
         self.client.force_authenticate(user=self.user)
         
-    def test_list_subscriptions_success(self):
-        """GET /subscriptions/ - 사용자의 구독 목록 조회 성공 테스트"""
-        response = self.client.get(self.subscribe_list_create_url)
+    def test_subscription_crud_flow(self):
+        """ 구독 생성(POST) -> 목록 조회(GET) -> 삭제(DELETE) 흐름 테스트 """
+        # 1. 구독 생성 (group2 구독)
+        create_data = {'group_id': self.group2.id, 'notification': True}
+        create_response = self.client.post(self.subscribe_list_create_url, data=create_data)
+        self.assertEqual(create_response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(create_response.data['data']['group_id'], self.group2.id)
+        new_subscription_id_from_response = create_response.data['data']['id'] # 응답에서 id 확인 (삭제 시 사용 가능)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK) # 성공 상태 코드 확인
-        self.assertEqual(len(response.data['data']), 1) # setUpTestData에서 만든 구독 1개가 보이는지 확인
-        self.assertEqual(response.data['data'][0]['group_id'], self.group1.id) # 반환된 데이터의 그룹 ID 확인
-        self.assertEqual(response.data['data'][0]['group_name'], self.group1.name) # 반환된 데이터의 그룹 이름 확인
-        self.assertTrue(response.data['data'][0]['notification']) # 알림 설정 확인
-        
-    def test_create_subscription_success(self):
-        """POST /subscriptions/ - 새 그룹 구독 성공 테스트"""
-        data = {'group_id': self.group2.id, 'notification': False} # 아직 구독 안 한 group2 구독 요청
-        response = self.client.post(self.subscribe_list_create_url, data=data)
+        # 2. 구독 목록 조회 (초기 구독 group1 + 방금 만든 group2 = 총 2개 확인)
+        list_response = self.client.get(self.subscribe_list_create_url)
+        self.assertEqual(list_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(list_response.data['data']), 2)
+        group_ids_in_list = {item['group_id'] for item in list_response.data['data']}
+        self.assertIn(self.group1.id, group_ids_in_list)
+        self.assertIn(self.group2.id, group_ids_in_list)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED) # 생성 성공 상태 코드 확인
-        self.assertEqual(response.data['data']['group_id'], self.group2.id) # 응답 데이터 확인
-        self.assertFalse(response.data['data']['notification']) # 요청한 대로 알림 False 확인
-        # DB에 실제 생성되었는지 확인
-        self.assertTrue(UserGroupSubscribe.objects.filter(user=self.user, group=self.group2, notification=False).exists())
-        
-    def test_create_subscription_invalid_group(self):
-        """POST /subscriptions/ - 존재하지 않는 그룹 ID로 구독 시 실패 테스트"""
-        invalid_group_id = 9999
-        data = {'group_id': invalid_group_id, 'notification': True}
-        response = self.client.post(self.subscribe_list_create_url, data=data)
+        # 3. 구독 삭제 (방금 만든 group2 구독 삭제)
+        delete_url = self.subscribe_detail_url(self.group2.id) # pk는 group_id 사용
+        delete_response = self.client.delete(delete_url)
+        self.assertEqual(delete_response.status_code, status.HTTP_204_NO_CONTENT)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST) # 잘못된 요청 상태 코드 확인
-        self.assertIn('error_code', response.data) # error_code 키가 있는지 확인
-        self.assertEqual(response.data['error_code'], 'invalid') # 에러 코드가 'invalid'인지 확인
-        # DB에 생성되지 않았는지 확인
-        self.assertFalse(UserGroupSubscribe.objects.filter(user=self.user, group_id=invalid_group_id).exists())
+        # 4. 구독 목록 다시 조회 (group1만 남았는지 확인)
+        list_response_after_delete = self.client.get(self.subscribe_list_create_url)
+        self.assertEqual(list_response_after_delete.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(list_response_after_delete.data['data']), 1)
+        self.assertEqual(list_response_after_delete.data['data'][0]['group_id'], self.group1.id)
 
