@@ -1,6 +1,7 @@
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from openpyxl import load_workbook
+from rest_framework import status
 from rest_framework.generics import (
     ListAPIView,
     ListCreateAPIView,
@@ -10,7 +11,6 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from config.base_exception import ForbiddenException, ServiceUnavailableException
 from config.permissions import IsAdminOrReadOnly
 from Preferences.notification_service import NotificationService
 
@@ -24,10 +24,6 @@ from .swagger_schema import (
 
 
 class ScheduleListView(ListCreateAPIView):
-    """
-    일정 목록 조회 및 등록
-    """
-
     queryset = Schedule.objects.all()
     serializer_class = ScheduleSerializer
     permission_classes = [IsAdminOrReadOnly]
@@ -41,20 +37,15 @@ class ScheduleListView(ListCreateAPIView):
     def perform_create(self, serializer):
         group = serializer.validated_data.get("group")
         if not group:  # 그룹이 없으면 503 오류 반환
-            raise ServiceUnavailableException(
-                detail="선택된 그룹을 사용할 수 없습니다."
+            return Response(
+                {"error": "선택된 그룹을 사용할 수 없습니다."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
-        # 작성자를 자동으로 현재 사용자로 설정
         serializer.save(user=self.request.user)
-        # 일정 생성 후 알림 발송
         NotificationService.notify_schedule_creation(serializer.instance)
 
 
 class ScheduleDetailView(RetrieveUpdateDestroyAPIView):
-    """
-    특정 일정 상세 조회, 수정 및 삭제
-    """
-
     queryset = Schedule.objects.all()
     serializer_class = ScheduleSerializer
     permission_classes = [IsAdminOrReadOnly]
@@ -71,9 +62,10 @@ class ScheduleDetailView(RetrieveUpdateDestroyAPIView):
     def delete(self, request, *args, **kwargs):
         instance = self.get_object()
 
-        # 사용자가 일정의 작성자인지 확인
         if instance.user != request.user:
-            raise ForbiddenException(detail="삭제 권한이 없습니다.")
+            return Response(
+                {"error": "삭제 권한이 없습니다."}, status=status.HTTP_403_FORBIDDEN
+            )
 
         deleted_schedule_data = {
             "schedule.id": instance.id,
@@ -82,38 +74,6 @@ class ScheduleDetailView(RetrieveUpdateDestroyAPIView):
         }
         self.perform_destroy(instance)
         return Response({"data": deleted_schedule_data}, status=200)
-
-    @swagger_auto_schema(
-        request_body=ScheduleSerializer,
-        responses={
-            200: openapi.Response(
-                description="일정 수정 성공", schema=update_create_response_schema
-            ),
-        },
-    )
-    def update(self, request, *args, **kwargs):
-        # 일정 수정 처리 로직...
-        updated_data = {
-            "group_id": request.data.get("group_id"),
-            "schedule_id": self.kwargs["pk"],
-        }
-        return Response({"data": updated_data}, status=200)
-
-    @swagger_auto_schema(
-        request_body=ScheduleSerializer,
-        responses={
-            201: openapi.Response(
-                description="일정 등록 성공", schema=update_create_response_schema
-            ),
-        },
-    )
-    def create(self, request, *args, **kwargs):
-        # 일정 등록 처리 로직...
-        created_data = {
-            "group_id": request.data.get("group_id"),
-            "schedule_id": 123,  # 새로 생성된 ID를 반환
-        }
-        return Response({"data": created_data}, status=201)
 
 
 class GroupScheduleListView(ListAPIView):
