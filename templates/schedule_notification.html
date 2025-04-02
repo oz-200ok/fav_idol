@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ subject }}</title> {# 제목 변수 사용 가능 #}
+    <style>
+        /* 간단한 스타일 예시 */
+        body { font-family: sans-serif; }
+        .container { padding: 20px; border: 1px solid #eee; }
+        .highlight { color: #007bff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>안녕하세요, <span class="highlight">{{ username }}</span>님!</h2> {# 사용자 이름 변수 #}
+        <p>구독하신 <strong class="highlight">{{ group_name }}</strong>의 새로운 일정이 등록되었습니다.</p>
+
+        <hr>
+
+        <h3>일정 상세 정보</h3>
+        <ul>
+            <li><strong>일정 제목:</strong> {{ schedule.title }}</li>
+            <li><strong>일정 장소:</strong> {{ schedule.location | default:"미정" }}</li> {# default 필터 사용 가능 #}
+            <li><strong>시작 시간:</strong> {{ schedule.start_time | date:"Y년 m월 d일 H:i" }}</li> {# date 필터 사용 가능 #}
+            <li><strong>종료 시간:</strong> {{ schedule.end_time | date:"Y년 m월 d일 H:i" | default:"미정" }}</li>
+        </ul>
+
+        <hr>
+
+        <p>자세한 내용은 ILOG 웹에서 확인해주세요.</p>
+        <p>감사합니다.</p>
+    </div>
+</body>
+</html>

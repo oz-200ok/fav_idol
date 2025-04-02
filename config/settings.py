@@ -200,6 +200,16 @@ KAKAO_CALLBACK_URL = os.getenv("KAKAO_CALLBACK_URL")
 # JWT 설정
 JWT_EXPIRES_IN = 86400
 
+# Celery 설정 추가
+CELERY_BROKER_URL = (
+    "redis://localhost:6379/0"  # Redis 서버 주소 (Redis 설치 및 실행 필요)
+)
+CELERY_RESULT_BACKEND = "redis://localhost:6379/0"  # 작업 결과 저장 백엔드 (선택 사항)
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = "Asia/Seoul"
+
 # 이메일 설정
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "in-v3.mailjet.com"
