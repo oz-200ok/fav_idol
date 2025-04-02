@@ -43,9 +43,6 @@ class PermissionOverrideTest(APITestCase):
             "schedule_detail", kwargs={"pk": pk}
         )
 
-    from rest_framework.request import Request
-    from rest_framework.test import APIRequestFactory
-
     def test_create_schedule_as_admin(self):
         """관리자 권한으로 일정 생성 테스트"""
         idol1 = Idol.objects.create(name="Idol1", group=self.group)
