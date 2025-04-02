@@ -11,7 +11,7 @@ class AgencySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Agency
-        fields = ["name", "contact", "image", "image_file"]  # 필요한 필드 정의
+        fields = ["id", "name", "contact", "image", "image_file"]  # 필요한 필드 정의
         read_only_fields = ["image"]  # image 필드는 읽기 전용으로 설정
 
     # 이름 중복 검증
