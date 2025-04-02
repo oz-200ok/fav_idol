@@ -5,6 +5,16 @@ from Idols.s3_utils import upload_image_to_s3
 from .models import Agency, Group, Idol
 
 
+class IdolNestedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Idol
+        fields = [
+            "id",
+            "name",
+            "image",
+        ]  # 그룹 정보에 포함시킬 아이돌 필드 (id, 이름, 이미지 URL)
+
+
 # Agency Serializer
 class AgencySerializer(serializers.ModelSerializer):
     image_file = serializers.ImageField(write_only=True, required=False)
@@ -46,30 +56,31 @@ class GroupSerializer(serializers.ModelSerializer):
     agency_name = serializers.CharField(
         source="agency.name", read_only=True
     )  # 관련 소속사 이름 추가 (읽기 전용)
-    idol_names = serializers.SerializerMethodField()
-    member_count = serializers.IntegerField(read_only=True)  # 그룹 멤버 수 추가
+    idol_set = IdolNestedSerializer(many=True, read_only=True)
+    member_count = serializers.SerializerMethodField()
     image_file = serializers.ImageField(write_only=True, required=False)
 
     class Meta:
         model = Group
         fields = [
-            "agency_name",
-            "id",
+            "id",  # ID 필드 추가
             "name",
-            "agency",
-            "sns",
+            "agency",  # 소속사 ID (ForeignKey)
+            "agency_name",  # 소속사 이름
             "color",
-            "image",
-            "member_count",
-            "idol_names",
-            "image_file",
+            "sns",
+            "image",  # 그룹 이미지 URL
+            "idol_set",  # 중첩된 아이돌 정보 리스트
+            "member_count",  # 계산된 멤버 수
+            "image_file",  # 이미지 업로드용 (write_only)
         ]  # 사용 필드 정의
 
         read_only_fields = ["image"]  # image 필드는 읽기 전용으로 설정
 
-    def get_idol_names(self, obj):
-        # 해당 그룹에 속한 아이돌 이름 목록 반환
-        return Idol.objects.filter(group=obj).values_list("name", flat=True)
+    # member_count 계산 메서드
+    def get_member_count(self, obj):
+        # obj는 Group 인스턴스. 연관된 idol_set의 개수를 센다.
+        return obj.idol_set.count()
 
     # 이름 중복 검증
     def validate_name(self, value):
@@ -107,8 +118,16 @@ class IdolSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Idol
-        fields = ["name", "group", "group_name", "image_file"]  # 사용 필드 정의
-        read_only_fields = ["image"]
+        fields = [
+            "id",  # ID 필드 추가
+            "name",
+            "group",  # 생성/수정 시 필요
+            "group_name",
+            "image",  # 아이돌 이미지 URL 필드 추가
+            "image_file",
+        ]
+        # group_name도 읽기 전용이므로 read_only_fields에 추가
+        read_only_fields = ["image", "group_name"]
 
     def validate(self, data):
         name = data.get("name")
