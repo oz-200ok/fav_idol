@@ -11,10 +11,17 @@ def custom_exception_handler(exc, context):
     response = exception_handler(exc, context)
 
     # 기본 응답이 있는 경우 데이터 커스터마이즈
-    if response is not None:
+    if hasattr(exc, "detail"):
         response.data = {
             "error_code": getattr(exc, "default_code", "error"),
             "error_message": str(exc.detail),
+            "status_code": response.status_code,
+        }
+    else:
+        # Http404 같은 예외 처리
+        response.data = {
+            "error_code": "not_found",
+            "error_message": "리소스를 찾을 수 없습니다.",
             "status_code": response.status_code,
         }
 
