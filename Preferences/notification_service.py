@@ -16,7 +16,7 @@ class NotificationService:
             return False
 
         subject = f"[ILOG] {schedule.group.name} 새 일정 알림"
-        template_name = "notifications/email/schedule_notification.html" # 사용할 템플릿 경로
+        template_name = "../templates/schedule_notification.html" # 사용할 템플릿 경로
 
         for subscriber in subscribers:
             if subscriber.user.email:
@@ -25,10 +25,7 @@ class NotificationService:
                     'subject': subject,
                     'username': subscriber.user.username,
                     'group_name': schedule.group.name,
-                    'schedule_title': schedule.title,
-                    'schedule_location': schedule.location,
-                    'schedule_start_time': schedule.start_time,
-                    'schedule_end_time': schedule.end_time
+                    'schedule': schedule,
                 }
 
                 # HTML 템플릿 렌더링
