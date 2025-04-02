@@ -120,8 +120,12 @@ class PermissionOverrideTest(APITestCase):
 
         response = self.client.post(self.schedule_list_url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)  # 실패 확인
-        self.assertIn("group", response.data)  # 필수 필드 'group'에 대한 에러 메시지 확인
-        self.assertIn("title", response.data)  # 필수 필드 'title'에 대한 에러 메시지 확인
+        self.assertIn(
+            "group", response.data
+        )  # 필수 필드 'group'에 대한 에러 메시지 확인
+        self.assertIn(
+            "title", response.data
+        )  # 필수 필드 'title'에 대한 에러 메시지 확인
 
     def test_create_schedule_invalid_time_range(self):
         """종료 시간이 시작 시간보다 빠른 경우 실패"""
@@ -140,8 +144,13 @@ class PermissionOverrideTest(APITestCase):
 
         response = self.client.post(self.schedule_list_url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)  # 실패 확인
-        self.assertIn("non_field_errors", response.data)  # 전체 데이터 수준 오류 메시지 확인
-        self.assertIn("종료 시간이 시작 시간보다 빠를 수 없습니다.", response.data["non_field_errors"][0])  # 오류 메시지 텍스트 확인
+        self.assertIn(
+            "non_field_errors", response.data
+        )  # 전체 데이터 수준 오류 메시지 확인
+        self.assertIn(
+            "종료 시간이 시작 시간보다 빠를 수 없습니다.",
+            response.data["non_field_errors"][0],
+        )  # 오류 메시지 텍스트 확인
 
     def test_list_schedules_empty(self):
         """일정 데이터가 없는 경우 목록 조회 시 빈 데이터 반환"""
@@ -167,5 +176,7 @@ class PermissionOverrideTest(APITestCase):
         response = self.client.delete(
             self.schedule_detail_url(schedule.id), format="json"
         )
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)  # 권한 실패 확인
+        self.assertEqual(
+            response.status_code, status.HTTP_403_FORBIDDEN
+        )  # 권한 실패 확인
         self.assertEqual(Schedule.objects.count(), 1)  # 일정 삭제되지 않음 확인

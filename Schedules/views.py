@@ -1,6 +1,7 @@
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from openpyxl import load_workbook
+from rest_framework import status
 from rest_framework.generics import (
     ListAPIView,
     ListCreateAPIView,
@@ -9,7 +10,6 @@ from rest_framework.generics import (
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework import status
 
 from config.permissions import IsAdminOrReadOnly
 from Preferences.notification_service import NotificationService
@@ -39,7 +39,7 @@ class ScheduleListView(ListCreateAPIView):
         if not group:  # 그룹이 없으면 503 오류 반환
             return Response(
                 {"error": "선택된 그룹을 사용할 수 없습니다."},
-                status=status.HTTP_503_SERVICE_UNAVAILABLE
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
         serializer.save(user=self.request.user)
         NotificationService.notify_schedule_creation(serializer.instance)
@@ -64,8 +64,7 @@ class ScheduleDetailView(RetrieveUpdateDestroyAPIView):
 
         if instance.user != request.user:
             return Response(
-                {"error": "삭제 권한이 없습니다."},
-                status=status.HTTP_403_FORBIDDEN
+                {"error": "삭제 권한이 없습니다."}, status=status.HTTP_403_FORBIDDEN
             )
 
         deleted_schedule_data = {
