@@ -1,71 +1,48 @@
-from django.contrib.auth import get_user_model
-from django.test import TestCase
-
+from django.urls import reverse
+from rest_framework.test import APITestCase
+from rest_framework import status
 from .models import Agency, Group, Idol
 
-User = get_user_model()
 
-
-class AgencyGroupIdolTests(TestCase):
+class AgencyViewTests(APITestCase):
     def setUp(self):
-        # 슈퍼유저 생성
-        self.admin_user = User.objects.create_superuser(
-            name="admin",
-            username="admin@admin.com",
-            email="admin@admin.com",
-            password="test@1234",
-        )
+        # 테스트 데이터 생성
+        self.agency = Agency.objects.create(name="Test Agency", contact="123456789")
+        self.agency_list_url = reverse("agency-list")
+        self.agency_detail_url = reverse("agency-detail", kwargs={"pk": self.agency.id})
 
-        # 로그인
-        logged_in = self.client.login(email="admin@admin.com", password="test@1234")
-        self.assertTrue(
-            logged_in, "Test client failed to log in with admin credentials."
-        )
+    def test_get_agency_list(self):
+        """소속사 목록 조회 테스트"""
+        response = self.client.get(self.agency_list_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue("data" in response.data)
 
-        # 소속사(Agency) 생성
-        self.agency = Agency.objects.create(
-            name="SM Entertainment",
-            contact="010-1234-5678",
-            image="http://example.com/sm_logo.png",
-        )
+    def test_create_agency(self):
+        """소속사 생성 테스트"""
+        data = {
+            "name": "New Agency",
+            "contact": "987654321",
+        }
+        response = self.client.post(self.agency_list_url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Agency.objects.count(), 2)
+        self.assertEqual(Agency.objects.last().name, "New Agency")
 
-        # 그룹(Group) 생성
-        self.group = Group.objects.create(
-            agency=self.agency,
-            name="EXO",
-            sns="http://twitter.com/exo",
-            color="black",
-            image="http://example.com/exo_logo.png",
-        )
+    def test_get_agency_detail(self):
+        """소속사 상세 조회 테스트"""
+        response = self.client.get(self.agency_detail_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["data"]["name"], self.agency.name)
 
-        # 아이돌(Idol) 생성
-        self.idol = Idol.objects.create(
-            group=self.group,
-            name="Baekhyun",
-            image="http://example.com/baekhyun_pic.png",
-        )
+    def test_update_agency(self):
+        """소속사 업데이트 테스트"""
+        data = {"name": "Updated Agency", "contact": "111222333"}
+        response = self.client.put(self.agency_detail_url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Agency.objects.get(id=self.agency.id).name, "Updated Agency")
 
-    def test_agency_creation(self):
-        # 소속사가 잘 생성되었는지 확인
-        self.assertEqual(self.agency.name, "SM Entertainment")
-        self.assertEqual(self.agency.contact, "010-1234-5678")
-        self.assertEqual(self.agency.image, "http://example.com/sm_logo.png")
-
-    def test_group_creation(self):
-        # 그룹이 잘 생성되었는지 확인
-        self.assertEqual(self.group.name, "EXO")
-        self.assertEqual(self.group.agency, self.agency)
-        self.assertEqual(self.group.image, "http://example.com/exo_logo.png")
-
-    def test_idol_creation(self):
-        # 아이돌이 잘 생성되었는지 확인
-        self.assertEqual(self.idol.name, "Baekhyun")
-        self.assertEqual(self.idol.group, self.group)
-        self.assertEqual(self.idol.image, "http://example.com/baekhyun_pic.png")
-
-    def test_inline_relationships(self):
-        # Group이 Agency와 연결되었는지 확인
-        self.assertEqual(self.group.agency.name, "SM Entertainment")
-
-        # Idol이 Group과 연결되었는지 확인
-        self.assertEqual(self.idol.group.name, "EXO")
+    def test_delete_agency(self):
+        """소속사 삭제 테스트"""
+        response = self.client.delete(self.agency_detail_url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(Agency.objects.count(), 0)
