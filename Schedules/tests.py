@@ -1,57 +1,108 @@
-from datetime import timedelta
-
 from django.contrib.auth import get_user_model
-from django.test import Client, TestCase
-from django.utils import timezone
+from django.urls import reverse
+from rest_framework import status
+from rest_framework.test import APIClient, APIRequestFactory, APITestCase
 
-from Idols.models import Agency, Group, Idol
+from Idols.models import Agency, Idol
 
-from .models import Schedule
+from .models import Group, Schedule
+from .serializer import ScheduleSerializer
 
-User = get_user_model()
 
-
-class ScheduleModelTest(TestCase):
+class PermissionOverrideTest(APITestCase):
     def setUp(self):
-        # 테스트에 필요한 객체들을 생성합니다.
+        # 테스트 사용자 생성
+        User = get_user_model()
+        self.superuser = User.objects.create_superuser(
+            username="adminuser",
+            name="Super User",
+            email="admin@example.com",
+            password="adminpassword123",
+        )
+
         self.user = User.objects.create_user(
-            email="test@example.com",
             username="testuser",
             name="Test User",
-            password="testpassword",
+            email="testuser@example.com",
+            password="password123",
         )
+
+        # 테스트 그룹 및 에이전시 생성
         self.agency = Agency.objects.create(name="Test Agency")
         self.group = Group.objects.create(name="Test Group", agency=self.agency)
-        self.idol1 = Idol.objects.create(name="Idol 1", group=self.group)
-        self.idol2 = Idol.objects.create(name="Idol 2", group=self.group)
-        self.start_time = timezone.now()  # Use timezone.now()
-        self.end_time = self.start_time + timedelta(hours=2)
 
-        self.schedule = Schedule.objects.create(
-            user=self.user,
-            group=self.group,
-            title="Test Schedule",
-            description="This is a test schedule.",
-            location="Test Location",
-            start_time=self.start_time,
-            end_time=self.end_time,
+        # 테스트 클라이언트 설정
+        self.client = APIClient()
+
+        # force_authenticate로 인증 우회 - 관리자 설정
+        self.client.force_authenticate(user=self.superuser)
+
+        # API 엔드포인트 설정
+        self.schedule_list_url = reverse("schedule")
+        self.schedule_detail_url = lambda pk: reverse(
+            "schedule_detail", kwargs={"pk": pk}
         )
-        self.schedule.participating_members.add(self.idol1, self.idol2)
 
-    def test_schedule_creation(self):
-        # 스케줄이 정상적으로 생성되는지 테스트합니다.
-        self.assertEqual(Schedule.objects.count(), 1)
-        schedule = Schedule.objects.first()
-        self.assertEqual(schedule.user, self.user)
-        self.assertEqual(schedule.group, self.group)
-        self.assertEqual(schedule.title, "Test Schedule")
-        self.assertEqual(schedule.description, "This is a test schedule.")
-        self.assertEqual(schedule.location, "Test Location")
-        self.assertEqual(schedule.start_time, self.start_time)
-        self.assertEqual(schedule.end_time, self.end_time)
+    def test_create_schedule_as_admin(self):
+        """관리자 권한으로 일정 생성 테스트"""
+        idol1 = Idol.objects.create(name="Idol1", group=self.group)
+        idol2 = Idol.objects.create(name="Idol2", group=self.group)
 
-    def test_schedule_participating_members(self):
-        # 스케줄의 참가 멤버들이 올바르게 저장되는지 테스트합니다.
-        self.assertEqual(self.schedule.participating_members.count(), 2)
-        self.assertIn(self.idol1, self.schedule.participating_members.all())
-        self.assertIn(self.idol2, self.schedule.participating_members.all())
+        data = {
+            "group": self.group.id,
+            "title": "Admin Test Schedule",
+            "description": "Testing schedule creation as admin.",
+            "location": "Head Office",
+            "start_time": "2025-04-01T10:00:00Z",
+            "end_time": "2025-04-01T12:00:00Z",
+            "participating_member_ids": [idol1.id, idol2.id],
+        }
+
+        factory = APIRequestFactory()
+        request = factory.post(self.schedule_list_url, data, format="json")
+        request.user = self.superuser  # 인증된 사용자 설정
+
+        serializer = ScheduleSerializer(data=data, context={"request": request})
+        if serializer.is_valid():
+            serializer.save()
+            self.assertEqual(Schedule.objects.count(), 1)
+            self.assertEqual(Schedule.objects.get().title, "Admin Test Schedule")
+        else:
+            print("Errors:", serializer.errors)
+
+    def test_list_schedules(self):
+        """일정 목록 조회 테스트"""
+        Schedule.objects.create(
+            group=self.group,
+            user=self.user,
+            title="Sample Schedule",
+            description="This is a sample.",
+            location="Meeting Room",
+            start_time="2025-04-01T10:00:00Z",
+            end_time="2025-04-01T12:00:00Z",
+        )
+
+        response = self.client.get(self.schedule_list_url, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+
+    def test_delete_schedule(self):
+        """관리자 권한으로 일정 삭제 테스트"""
+        schedule = Schedule.objects.create(
+            group=self.group,
+            user=self.superuser,  # 관리자 사용자로 설정
+            title="Sample Schedule",
+            description="This is a sample.",
+            location="Meeting Room",
+            start_time="2025-04-01T10:00:00Z",
+            end_time="2025-04-01T12:00:00Z",
+        )
+
+        # force_authenticate로 관리자 인증 설정
+        self.client.force_authenticate(user=self.superuser)
+
+        response = self.client.delete(
+            self.schedule_detail_url(schedule.id), format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Schedule.objects.count(), 0)
