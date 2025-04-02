@@ -89,3 +89,10 @@ class PreferenceAPITests(APITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['data']['title'], self.schedule1.title)
+        
+    def test_retrieve_schedule_detail_not_found(self):
+        """존재하지 않는 일정 조회 시 실패 (404 에러 확인)"""
+        invalid_schedule_id = 9999
+        url = self.schedule_detail_url(invalid_schedule_id)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
