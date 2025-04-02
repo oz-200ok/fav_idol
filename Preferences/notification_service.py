@@ -1,32 +1,15 @@
-from concurrent.futures import ThreadPoolExecutor
-
-from django.conf import settings
-from django.core.mail import send_mail
+from django.template.loader import render_to_string  # 템플릿 렌더링 함수 임포트
+from django.utils.html import strip_tags  # HTML 태그 제거 함수 임포트 (텍스트 버전용)
 
 from .models import UserGroupSubscribe
+from .notification_task import send_email_task
+
+# ... (다른 import 구문들) ...
 
 
 class NotificationService:
     @staticmethod
-    def send_email_async(subject, message, recipient):
-        """단일 이메일을 비동기적으로 발송합니다."""
-        try:
-            send_mail(
-                subject=subject,
-                message=message,
-                from_email=settings.EMAIL_SENDER,
-                recipient_list=[recipient],
-                fail_silently=False,
-            )
-            return True
-        except Exception as e:
-            print(f"이메일 발송 실패 ({recipient}): {str(e)}")
-            return False
-
-    @staticmethod
     def notify_schedule_creation(schedule):
-        """새로운 일정이 생성되면 구독자들에게 이메일 알림을 발송합니다."""
-        # 해당 그룹을 구독하고 알림 설정이 활성화된 사용자 조회
         subscribers = UserGroupSubscribe.objects.filter(
             group_id=schedule.group_id, notification=True
         ).select_related("user")
@@ -34,31 +17,31 @@ class NotificationService:
         if not subscribers:
             return False
 
-        # 이메일 제목과 내용 구성
         subject = f"[ILOG] {schedule.group.name} 새 일정 알림"
+        template_name = "../templates/schedule_notification.html"  # 사용할 템플릿 경로
 
-        # 이메일을 비동기적으로 발송
-        with ThreadPoolExecutor(max_workers=5) as executor:
-            for subscriber in subscribers:
-                if subscriber.user.email:
-                    message = f"""
-안녕하세요, {subscriber.user.username}님!
+        for subscriber in subscribers:
+            if subscriber.user.email:
+                # 템플릿에 전달할 컨텍스트 데이터 (딕셔너리 형태)
+                context = {
+                    "subject": subject,
+                    "username": subscriber.user.username,
+                    "group_name": schedule.group.name,
+                    "schedule": schedule,
+                }
 
-구독하신 {schedule.group.name}의 새로운 일정이 등록되었습니다.
+                # HTML 템플릿 렌더링
+                html_message = render_to_string(template_name, context)
 
-일정 제목: {schedule.title}
-일정 장소: {schedule.location or '미정'}
-시작 시간: {schedule.start_time.strftime('%Y년 %m월 %d일 %H:%M')}
-종료 시간: {schedule.end_time.strftime('%Y년 %m월 %d일 %H:%M') if schedule.end_time else '미정'}
+                # HTML에서 태그를 제거하여 간단한 텍스트 버전 생성 (Fallback 용)
+                plain_message = strip_tags(html_message)
 
-자세한 내용은 ILOG 웹에서 확인해주세요.
-감사합니다.
-"""
-                    executor.submit(
-                        NotificationService.send_email_async,
-                        subject,
-                        message,
-                        subscriber.user.email,
-                    )
+                # Celery task 호출 시 HTML 메시지와 일반 텍스트 메시지를 함께 전달
+                send_email_task.delay(
+                    subject,
+                    plain_message,
+                    subscriber.user.email,
+                    html_message=html_message,
+                )
 
         return True
