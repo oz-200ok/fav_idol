@@ -1,9 +1,11 @@
-from celery import shared_task
-from django.core.mail import send_mail
-from django.conf import settings
 import logging
 
+from celery import shared_task
+from django.conf import settings
+from django.core.mail import send_mail
+
 logger = logging.getLogger(__name__)
+
 
 # html_message 인자를 추가로 받도록 수정 (기본값 None)
 @shared_task(bind=True)
@@ -12,11 +14,11 @@ def send_email_task(self, subject, message, recipient, html_message=None):
     try:
         send_mail(
             subject=subject,
-            message=message,                 # 일반 텍스트 메시지 (HTML 미지원 시 보여짐)
+            message=message,  # 일반 텍스트 메시지 (HTML 미지원 시 보여짐)
             from_email=settings.EMAIL_SENDER,
             recipient_list=[recipient],
             fail_silently=False,
-            html_message=html_message      # HTML 버전 메시지
+            html_message=html_message,  # HTML 버전 메시지
         )
         logger.info(f"Celery HTML 이메일 발송 성공: {recipient}")
         return True
