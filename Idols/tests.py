@@ -58,9 +58,11 @@ class AgencyViewTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Agency.objects.count(), 2)
 
-    @override_settings(REST_FRAMEWORK={
-        'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.AllowAny']
-    })
+    @override_settings(
+        REST_FRAMEWORK={
+            "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.AllowAny"]
+        }
+    )
     def test_create_agency_without_auth(self):
         """소속사 생성 테스트 - 인증되지 않은 사용자"""
         self.client.force_authenticate(user=None)  # 익명 사용자로 요청
