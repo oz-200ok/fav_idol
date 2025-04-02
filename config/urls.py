@@ -25,13 +25,13 @@ from rest_framework import permissions
 from Idols.views import TestView
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
+    path("idolmaster/", admin.site.urls),
     path("ilog/account/", include("Accounts.urls")),
     path("ilog/schedule/", include("Schedules.urls")),
     path("ilog/idol/", include("Idols.urls")),
     path("ilog/service/", include("Preferences.urls")),
     path("ilog/accounts/", include("allauth.urls")),
-    path("test/", TestView.as_view(), name="test_view"),
+    # path("test/", TestView.as_view(), name="test_view"),
 ]
 
 if settings.DEBUG:
