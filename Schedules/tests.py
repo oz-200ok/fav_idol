@@ -1,29 +1,44 @@
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 
+from Idols.models import Agency
 from .models import Group, Schedule
 
 
 class ScheduleAPITestCase(APITestCase):
     def setUp(self):
+        # 커스텀 User 모델 가져오기
+        User = get_user_model()
+
         # 테스트 사용자 생성
-        self.user = User.objects.create_user(username="testuser", password="testpass")
+        self.user = User.objects.create_user(
+            email="testuser@example.com",
+            username="testuser",
+            name="Test User",
+            password="testpass"
+        )
         self.admin = User.objects.create_superuser(
-            username="admin", password="adminpass"
+            email="admin@example.com",
+            username="admin",
+            name="Admin User",
+            password="adminpass"
         )
 
-        # 그룹 생성
-        self.group = Group.objects.create(name="Test Group")
+        # Agency 객체 생성
+        self.agency = Agency.objects.create(name="Test Agency")
 
-        # 인증 클라이언트 생성
-        self.client = APIClient()
-        self.client.login(username="admin", password="adminpass")  # Admin 로그인
+        # 그룹 생성 (agency 연결)
+        self.group = Group.objects.create(name="Test Group", agency=self.agency)
+
+        # 사용자 토큰 생성
+        token = Token.objects.create(user=self.admin)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {token.key}')
 
         # URL 설정
-        self.list_url = reverse("schedule-list")  # 등록된 view의 URL name
-        self.excel_upload_url = reverse("excel-upload")  # Excel 업로드용 URL
+        self.list_url = reverse("schedule")  # 등록된 view의 URL name
+        self.excel_upload_url = reverse("upload_schedule")  # Excel 업로드용 URL
 
     def test_create_schedule(self):
         """일정 등록 테스트"""
@@ -35,6 +50,8 @@ class ScheduleAPITestCase(APITestCase):
             "start_time": "2025-04-01T10:00:00Z",
             "end_time": "2025-04-01T12:00:00Z",
         }
+
+        # 인증된 클라이언트로 POST 요청
         response = self.client.post(self.list_url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Schedule.objects.count(), 1)
