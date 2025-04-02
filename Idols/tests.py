@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AnonymousUser
 from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
@@ -64,15 +65,17 @@ class AgencyViewTests(APITestCase):
         }
     )
     def test_create_agency_without_auth(self):
-        """소속사 생성 테스트 - 인증되지 않은 사용자"""
-        self.client.force_authenticate(user=None)  # 익명 사용자로 요청
+        """소속사 생성 테스트 - 익명 사용자 명시적 처리"""
+        self.client.force_authenticate(user=AnonymousUser())  # 익명 사용자 객체
 
         data = {
             "name": "Unauthorized Agency",
             "contact": "123456789",
         }
         response = self.client.post(self.agency_list_url, data, format="multipart")
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(
+            response.status_code, status.HTTP_401_UNAUTHORIZED
+        )  # 인증 실패 확인
 
     def test_create_agency_missing_fields(self):
         """필수 필드 없이 소속사 생성 요청 시 실패"""
