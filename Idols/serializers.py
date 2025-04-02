@@ -4,10 +4,15 @@ from Idols.s3_utils import upload_image_to_s3
 
 from .models import Agency, Group, Idol
 
+
 class IdolNestedSerializer(serializers.ModelSerializer):
     class Meta:
         model = Idol
-        fields = ['id', 'name', 'image'] # 그룹 정보에 포함시킬 아이돌 필드 (id, 이름, 이미지 URL)
+        fields = [
+            "id",
+            "name",
+            "image",
+        ]  # 그룹 정보에 포함시킬 아이돌 필드 (id, 이름, 이미지 URL)
 
 
 # Agency Serializer
@@ -58,16 +63,16 @@ class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
         fields = [
-            "id",           # ID 필드 추가 
+            "id",  # ID 필드 추가
             "name",
-            "agency",       # 소속사 ID (ForeignKey)
+            "agency",  # 소속사 ID (ForeignKey)
             "agency_name",  # 소속사 이름
             "color",
             "sns",
-            "image",        # 그룹 이미지 URL
-            "idol_set",     # 중첩된 아이돌 정보 리스트
-            "member_count", # 계산된 멤버 수
-            "image_file",   # 이미지 업로드용 (write_only)
+            "image",  # 그룹 이미지 URL
+            "idol_set",  # 중첩된 아이돌 정보 리스트
+            "member_count",  # 계산된 멤버 수
+            "image_file",  # 이미지 업로드용 (write_only)
         ]  # 사용 필드 정의
 
         read_only_fields = ["image"]  # image 필드는 읽기 전용으로 설정
@@ -76,7 +81,6 @@ class GroupSerializer(serializers.ModelSerializer):
     def get_member_count(self, obj):
         # obj는 Group 인스턴스. 연관된 idol_set의 개수를 센다.
         return obj.idol_set.count()
-
 
     # 이름 중복 검증
     def validate_name(self, value):
@@ -115,11 +119,11 @@ class IdolSerializer(serializers.ModelSerializer):
     class Meta:
         model = Idol
         fields = [
-            "id",           # ID 필드 추가
+            "id",  # ID 필드 추가
             "name",
-            "group",        # 생성/수정 시 필요
+            "group",  # 생성/수정 시 필요
             "group_name",
-            "image",        # 아이돌 이미지 URL 필드 추가
+            "image",  # 아이돌 이미지 URL 필드 추가
             "image_file",
         ]
         # group_name도 읽기 전용이므로 read_only_fields에 추가
