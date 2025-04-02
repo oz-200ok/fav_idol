@@ -82,3 +82,10 @@ class PreferenceAPITests(APITestCase):
         # 초기 구독(group1)의 일정(schedule1)만 포함하는지 확인
         self.assertEqual(len(response.data['data']), 1)
         self.assertEqual(response.data['data'][0]['title'], self.schedule1.title)
+        
+    def test_retrieve_schedule_detail_success(self):
+        """특정 일정 상세 조회 성공 (GET /schedules/{id}/)"""
+        url = self.schedule_detail_url(self.schedule1.id)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['data']['title'], self.schedule1.title)
