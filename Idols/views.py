@@ -13,13 +13,12 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-
-# from config.base_exception import NotFoundException
-
 from config.permissions import IsAdminOrReadOnly
 
 from .models import Agency, Group, Idol
 from .serializers import AgencySerializer, GroupSerializer, IdolSerializer
+
+# from config.base_exception import NotFoundException
 
 
 class TestView(GenericAPIView):
