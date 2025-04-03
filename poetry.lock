@@ -89,18 +89,18 @@ uvloop = ["uvloop (>=0.15.2)"]
 
 [[package]]
 name = "boto3"
-version = "1.37.24"
+version = "1.37.26"
 description = "The AWS SDK for Python"
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "boto3-1.37.24-py3-none-any.whl", hash = "sha256:2f2b8f82a5d7f89283973bf2cab771b90c09348799e78b2a25c60cd22c443514"},
-    {file = "boto3-1.37.24.tar.gz", hash = "sha256:1d3c6fc63a9efba0af8b531ec6b7f7c6b0ef197bf3dcd875f03c9097ac68b58f"},
+    {file = "boto3-1.37.26-py3-none-any.whl", hash = "sha256:77ff13723ad5b836a565c382610c3994e14ce643144dc9c604bfe1efb3213739"},
+    {file = "boto3-1.37.26.tar.gz", hash = "sha256:78fb57556c2337e087d2eda419ee371b52843a2420861114413791113efeabe2"},
 ]
 
 [package.dependencies]
-botocore = ">=1.37.24,<1.38.0"
+botocore = ">=1.37.26,<1.38.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.11.0,<0.12.0"
 
@@ -109,14 +109,14 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.37.24"
+version = "1.37.26"
 description = "Low-level, data-driven core of boto 3."
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "botocore-1.37.24-py3-none-any.whl", hash = "sha256:f1a55332cca85a6556af8941cccdaf5d2d00336647d9e89f31174f2361ffb4f2"},
-    {file = "botocore-1.37.24.tar.gz", hash = "sha256:a0bcc3c376a371f2c11afcbcc9917010c1c0a701d0e45d1ea3ec3bddeb06a8ff"},
+    {file = "botocore-1.37.26-py3-none-any.whl", hash = "sha256:d499a617903cbcaae18380320125fa3a95cb625b613d746e6edc69c6f01f1326"},
+    {file = "botocore-1.37.26.tar.gz", hash = "sha256:7f6dc999e7a34c0917623aac67c9ea2389b741bb7babee1a88cf2cd04006ea7a"},
 ]
 
 [package.dependencies]
@@ -519,18 +519,18 @@ test-randomorder = ["pytest-randomly"]
 
 [[package]]
 name = "django"
-version = "5.1.7"
+version = "5.2"
 description = "A high-level Python web framework that encourages rapid development and clean, pragmatic design."
 optional = false
 python-versions = ">=3.10"
 groups = ["main", "dev"]
 files = [
-    {file = "Django-5.1.7-py3-none-any.whl", hash = "sha256:1323617cb624add820cb9611cdcc788312d250824f92ca6048fda8625514af2b"},
-    {file = "Django-5.1.7.tar.gz", hash = "sha256:30de4ee43a98e5d3da36a9002f287ff400b43ca51791920bfb35f6917bfe041c"},
+    {file = "Django-5.2-py3-none-any.whl", hash = "sha256:91ceed4e3a6db5aedced65e3c8f963118ea9ba753fc620831c77074e620e7d83"},
+    {file = "Django-5.2.tar.gz", hash = "sha256:1a47f7a7a3d43ce64570d350e008d2949abe8c7e21737b351b6a1611277c6d89"},
 ]
 
 [package.dependencies]
-asgiref = ">=3.8.1,<4"
+asgiref = ">=3.8.1"
 sqlparse = ">=0.3.1"
 tzdata = {version = "*", markers = "sys_platform == \"win32\""}
 
