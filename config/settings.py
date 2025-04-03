@@ -239,3 +239,8 @@ else:
     from .dev import *
 
 SWAGGER_ON_OR_OFF = os.getenv("SWAGGER_ON_OR_OFF")
+
+if SWAGGER_ON_OR_OFF:
+    INSTALLED_APPS += ["drf_yasg"]
+else:
+    SWAGGER_ON_OR_OFF = False

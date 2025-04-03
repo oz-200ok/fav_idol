@@ -16,3 +16,11 @@ CORS_ALLOW_CREDENTIALS = True
 
 # CSRF 설정
 CSRF_TRUSTED_ORIGINS = ["https://ilog.giize.com", "https://*.ilog.giize.com"]
+
+# 스웨거 설정
+SWAGGER_SETTINGS = {
+    "SECURITY_DEFINITIONS": {
+        "Bearer": {"type": "apiKey", "name": "Authorization", "in": "header"}
+    },
+    "USE_SESSION_AUTH": False,
+}
