@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.db.models import Count
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -12,15 +13,13 @@ from rest_framework.generics import (
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from django.db import transaction
-
-
-# from config.base_exception import NotFoundException
 
 from config.permissions import IsAdminOrReadOnly
 
 from .models import Agency, Group, Idol
 from .serializers import AgencySerializer, GroupSerializer, IdolSerializer
+
+# from config.base_exception import NotFoundException
 
 
 class TestView(GenericAPIView):
@@ -283,10 +282,12 @@ class IdolDetailView(RetrieveUpdateDestroyAPIView):
         self.perform_destroy(instance)
         return Response({"data": deleted_idol_data}, status=status.HTTP_200_OK)
 
+
 class GroupWithIdolsView(GenericAPIView):
     """
     그룹과 아이돌을 동시에 생성 및 수정
     """
+
     serializer_class = GroupSerializer  # 기본 Serializer는 그룹의 Serializer를 사용
 
     def post(self, request, *args, **kwargs):

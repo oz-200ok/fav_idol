@@ -26,7 +26,9 @@ class AgencySerializer(serializers.ModelSerializer):
 
     # 이름 중복 검증 (자신 제외)
     def validate_name(self, value):
-        agency_id = self.instance.id if self.instance else None  # 현재 객체의 ID 가져오기
+        agency_id = (
+            self.instance.id if self.instance else None
+        )  # 현재 객체의 ID 가져오기
         if Agency.objects.filter(name__iexact=value).exclude(id=agency_id).exists():
             raise serializers.ValidationError("같은 이름의 소속사가 이미 존재합니다.")
         return value
@@ -85,7 +87,9 @@ class GroupSerializer(serializers.ModelSerializer):
 
     # 이름 중복 검증 자신 제외
     def validate_name(self, value):
-        group_id = self.instance.id if self.instance else None  # 현재 객체의 ID 가져오기
+        group_id = (
+            self.instance.id if self.instance else None
+        )  # 현재 객체의 ID 가져오기
         if Group.objects.filter(name__iexact=value).exclude(id=group_id).exists():
             raise serializers.ValidationError("같은 이름의 그룹이 이미 존재합니다.")
         return value
