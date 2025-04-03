@@ -235,7 +235,6 @@ except ImportError:
 if os.getenv("ENVIRONMENT") == "prod":
     from .prod import *
 else:
-    INSTALLED_APPS += ["drf_yasg"]
     from .dev import *
 
 SWAGGER_ON_OR_OFF = os.getenv("SWAGGER_ON_OR_OFF")
