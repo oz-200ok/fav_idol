@@ -34,7 +34,7 @@ urlpatterns = [
     # path("test/", TestView.as_view(), name="test_view"),
 ]
 
-if settings.DEBUG:
+if settings.SWAGGER_ON_OR_OFF:
     schema_view = get_schema_view(
         openapi.Info(
             title="I-LOG API",
