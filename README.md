@@ -71,6 +71,5 @@ Flow chart for social login
 ```bash
 git clone https://github.com/yourname/ilog.git
 cd ilog
-npm install
-npm run dev
+python manage.py runserver
 
