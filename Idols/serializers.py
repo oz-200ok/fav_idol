@@ -24,10 +24,11 @@ class AgencySerializer(serializers.ModelSerializer):
         fields = ["id", "name", "contact", "image", "image_file"]  # 필요한 필드 정의
         read_only_fields = ["image"]  # image 필드는 읽기 전용으로 설정
 
-    # 이름 중복 검증
+    # 이름 중복 검증 (자신 제외)
     def validate_name(self, value):
-        if Agency.objects.filter(name__iexact=value).exists():
-            raise serializers.ValidationError("같은 이름의 소속사가 존재합니다.")
+        agency_id = self.instance.id if self.instance else None  # 현재 객체의 ID 가져오기
+        if Agency.objects.filter(name__iexact=value).exclude(id=agency_id).exists():
+            raise serializers.ValidationError("같은 이름의 소속사가 이미 존재합니다.")
         return value
 
     def create(self, validated_data):
@@ -82,10 +83,11 @@ class GroupSerializer(serializers.ModelSerializer):
         # obj는 Group 인스턴스. 연관된 idol_set의 개수를 센다.
         return obj.idol_set.count()
 
-    # 이름 중복 검증
+    # 이름 중복 검증 자신 제외
     def validate_name(self, value):
-        if Group.objects.filter(name__iexact=value).exists():
-            raise serializers.ValidationError("같은 이름의 그룹이 존재합니다.")
+        group_id = self.instance.id if self.instance else None  # 현재 객체의 ID 가져오기
+        if Group.objects.filter(name__iexact=value).exclude(id=group_id).exists():
+            raise serializers.ValidationError("같은 이름의 그룹이 이미 존재합니다.")
         return value
 
     def create(self, validated_data):
@@ -132,14 +134,16 @@ class IdolSerializer(serializers.ModelSerializer):
     def validate(self, data):
         name = data.get("name")
         group = data.get("group")
+        idol_id = self.instance.id if self.instance else None  # 현재 객체의 ID 가져오기
 
         # 데이터 유효성 검사
         if not name or not group:
             raise serializers.ValidationError("이름과 그룹은 필수 입력 항목입니다.")
 
-        if Idol.objects.filter(name=name, group=group).exists():
+        # 같은 그룹 내의 이름 중복 검사 (자기 자신 제외)
+        if Idol.objects.filter(name=name, group=group).exclude(id=idol_id).exists():
             raise serializers.ValidationError(
-                "같은 그룹에 동일한 이름의 아이돌이 존재합니다."
+                "같은 그룹에 동일한 이름의 아이돌이 이미 존재합니다."
             )
         return data
 
