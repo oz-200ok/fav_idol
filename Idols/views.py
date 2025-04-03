@@ -12,6 +12,7 @@ from rest_framework.generics import (
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from django.db import transaction
 
 
 # from config.base_exception import NotFoundException
@@ -281,3 +282,89 @@ class IdolDetailView(RetrieveUpdateDestroyAPIView):
         }
         self.perform_destroy(instance)
         return Response({"data": deleted_idol_data}, status=status.HTTP_200_OK)
+
+class GroupWithIdolsView(GenericAPIView):
+    """
+    그룹과 아이돌을 동시에 생성 및 수정
+    """
+    serializer_class = GroupSerializer  # 기본 Serializer는 그룹의 Serializer를 사용
+
+    def post(self, request, *args, **kwargs):
+        """
+        그룹과 아이돌 생성
+        """
+        group_data = request.data.get("group")  # 그룹 데이터 추출
+        idols_data = request.data.get("idols", [])  # 아이돌 데이터 추출
+
+        with transaction.atomic():  # 트랜잭션 처리
+            # 그룹 생성
+            group_serializer = self.get_serializer(data=group_data)
+            group_serializer.is_valid(raise_exception=True)
+            group = group_serializer.save()
+
+            # 아이돌 생성
+            idol_instances = []
+            for idol_data in idols_data:
+                idol_data["group"] = group.id  # 그룹 ID를 아이돌 데이터에 추가
+                idol_serializer = IdolSerializer(data=idol_data)
+                idol_serializer.is_valid(raise_exception=True)
+                idol = idol_serializer.save()
+                idol_instances.append(idol)
+
+        return Response(
+            {
+                "message": "그룹과 아이돌이 성공적으로 생성되었습니다.",
+                "group": group_serializer.data,
+                "idols": IdolSerializer(idol_instances, many=True).data,
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
+    def patch(self, request, *args, **kwargs):
+        """
+        그룹과 아이돌 수정
+        """
+        group_id = kwargs.get("group_id")  # URL에서 그룹 ID 추출
+        group_data = request.data.get("group")  # 수정할 그룹 데이터
+        idols_data = request.data.get("idols", [])  # 수정할 아이돌 데이터
+
+        with transaction.atomic():  # 트랜잭션 처리
+            # 그룹 수정
+            group = Group.objects.filter(id=group_id).first()
+            if not group:
+                return Response({"error": "그룹을 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+
+            group_serializer = self.get_serializer(group, data=group_data, partial=True)
+            group_serializer.is_valid(raise_exception=True)
+            updated_group = group_serializer.save()
+
+            # 아이돌 수정 및 생성
+            updated_idol_instances = []
+            for idol_data in idols_data:
+                idol_id = idol_data.get("id")  # ID가 있으면 수정, 없으면 생성
+                if idol_id:
+                    idol_instance = Idol.objects.filter(id=idol_id, group=group).first()
+                    if not idol_instance:
+                        return Response(
+                            {"error": f"ID {idol_id}에 해당하는 아이돌을 찾을 수 없습니다."},
+                            status=status.HTTP_404_NOT_FOUND,
+                        )
+                    idol_serializer = IdolSerializer(
+                        idol_instance, data=idol_data, partial=True
+                    )
+                else:
+                    idol_data["group"] = group.id  # 그룹 ID를 추가
+                    idol_serializer = IdolSerializer(data=idol_data)
+
+                idol_serializer.is_valid(raise_exception=True)
+                idol = idol_serializer.save()
+                updated_idol_instances.append(idol)
+
+        return Response(
+            {
+                "message": "그룹과 아이돌이 성공적으로 수정되었습니다.",
+                "group": group_serializer.data,
+                "idols": IdolSerializer(updated_idol_instances, many=True).data,
+            },
+            status=status.HTTP_200_OK,
+        )
