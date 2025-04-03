@@ -20,7 +20,6 @@ from .serializers import AgencySerializer, GroupSerializer, IdolSerializer
 
 # from config.base_exception import NotFoundException
 
-
 class TestView(GenericAPIView):
     def get(self, request, *args, **kwargs):
         raise NotFoundException("테스트용 리소스 없음 오류")
